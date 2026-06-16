@@ -23,6 +23,7 @@ MAJOR.MINOR.PATCH
 ### Шаги
 
 1. **Создать changeset** на ветке фичи:
+
    ```bash
    npx changeset add
    ```
@@ -63,6 +64,7 @@ Settings → Secrets and variables → Actions.
 - Гарантий формата данных нет
 
 Версия 1.0.0 означает:
+
 - DSL v0.1 финализирована
 - API заморожен
 - Production ready

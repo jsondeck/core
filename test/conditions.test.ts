@@ -30,10 +30,7 @@ describe('conditions', () => {
 
   it('should evaluate logical "all"', () => {
     const cond: Condition = {
-      all: [
-        { eq: [1, 1] },
-        { eq: [2, 2] },
-      ],
+      all: [{ eq: [1, 1] }, { eq: [2, 2] }],
     };
 
     const result = evaluateCondition(cond, state, { vars: state.vars });
@@ -42,10 +39,7 @@ describe('conditions', () => {
 
   it('should evaluate logical "all" with failure', () => {
     const cond: Condition = {
-      all: [
-        { eq: [1, 1] },
-        { eq: [2, 3] },
-      ],
+      all: [{ eq: [1, 1] }, { eq: [2, 3] }],
     };
 
     const result = evaluateCondition(cond, state, { vars: state.vars });
@@ -54,10 +48,7 @@ describe('conditions', () => {
 
   it('should evaluate logical "any"', () => {
     const cond: Condition = {
-      any: [
-        { eq: [1, 2] },
-        { eq: [2, 2] },
-      ],
+      any: [{ eq: [1, 2] }, { eq: [2, 2] }],
     };
 
     const result = evaluateCondition(cond, state, { vars: state.vars });
@@ -152,10 +143,7 @@ describe('conditions', () => {
 
   it('should handle nested expressions', () => {
     const cond: Condition = {
-      all: [
-        { 'card.has_tag': ['$source', 'special'] },
-        { eq: ['$vars.counter', 5] },
-      ],
+      all: [{ 'card.has_tag': ['$source', 'special'] }, { eq: ['$vars.counter', 5] }],
     };
 
     const result = evaluateCondition(cond, state, {

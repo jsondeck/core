@@ -11,6 +11,7 @@
 `@jsondeck/core` is a pure, deterministic game engine for building and executing card games defined in JSON DSL. It provides validation, compilation, state management, event dispatching, rule execution, and render-neutral view models.
 
 This is a **headless library** — it contains no UI, DOM, Canvas, or browser dependencies. Perfect for:
+
 - Server-side game validation
 - Node.js game servers
 - Web browsers (via bundlers)

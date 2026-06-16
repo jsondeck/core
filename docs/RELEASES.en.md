@@ -23,6 +23,7 @@ Releases use [Changesets](https://github.com/changesets/changesets) for automati
 ### Workflow
 
 1. **Create changeset** on feature branch:
+
    ```bash
    npx changeset add
    ```
@@ -58,12 +59,14 @@ Fix timer remainingMs calculation in tick()
 ### What Needs a Changeset?
 
 **YES, add changeset for:**
+
 - New public API exports
 - Changes to DSL syntax
 - Bug fixes affecting behavior
 - Major version updates
 
 **NO changeset needed for:**
+
 - Internal refactoring
 - Test additions
 - Documentation updates (except new docs)
@@ -97,6 +100,7 @@ Current status: **BETA (0.1.x)**
 - No data format guarantees
 
 Version 1.0.0 will mark:
+
 - DSL v0.1 finalized
 - API frozen (breaking changes trigger MAJOR)
 - Production readiness
@@ -111,10 +115,12 @@ Format:
 ## [0.1.0] - 2024-06-16
 
 ### Added
+
 - JSON DSL v0.1 support
 - compileGame and safeCompileGame functions
 
 ### Fixed
+
 - Timer processing order consistency
 ```
 

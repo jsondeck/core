@@ -3,14 +3,11 @@ name: Release
 on:
   push:
     branches: [main]
-    paths:
-      - '.changeset/**'
-      - 'src/**'
-      - 'package.json'
 
 permissions:
   contents: write
-  packages: write
+  pull-requests: write
+  id-token: write
 
 jobs:
   release:
@@ -24,12 +21,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
       - name: Run full check
-        run: npm run typecheck && npm run lint && npm run test && npm run build
+        run: npm run check
 
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@v1
@@ -38,4 +37,5 @@ jobs:
           publish: npm run changeset:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

@@ -28,13 +28,14 @@ import {
   JsonDeckCompileError,
   DispatchResult,
   TickResult,
-  Runtime
+  Runtime,
 } from '@jsondeck/core';
 ```
 
 ## Ошибки
 
 Все ошибки содержат:
+
 - `code` — Строка кода ошибки
 - `message` — Человекочитаемое описание
 - `path` — Путь в DSL или состояние

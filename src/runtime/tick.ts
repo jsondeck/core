@@ -1,22 +1,26 @@
 import { CompiledGame } from '../dsl/types.js';
 import { GameState, TimerSnapshot, TimerFinishedEvent } from '../model/types.js';
-import { TickResult } from './types.js';
-import { dispatchEvent } from '../rules/dispatchEvent.js';
-import { JsonDeckError } from '../errors/types.js';
+import { TickResult, DispatchResult } from './types.js';
+import { dispatchEventInternal } from '../rules/dispatchEvent.js';
+import { deepCloneState } from '../rules/deepClone.js';
+import { JsonDeckError, JsonDeckWarning } from '../errors/types.js';
 
-export function tick(
-  game: CompiledGame,
-  state: GameState,
-  deltaMs: number,
-): TickResult {
+/**
+ * Advances time by `deltaMs` and processes due timers. Pure: the incoming
+ * `state` is never mutated; all work happens on a private clone.
+ *
+ * `deltaMs` must be a finite number >= 0. An invalid delta returns a TickResult
+ * with the unchanged (cloned) state and an INVALID_TICK_DELTA error.
+ */
+export function tick(game: CompiledGame, state: GameState, deltaMs: number): TickResult {
   const errors: JsonDeckError[] = [];
+  const warnings: JsonDeckWarning[] = [];
   const processedTimers: string[] = [];
-  const dispatchResults: any[] = [];
+  const dispatchResults: DispatchResult[] = [];
 
-  // Validate deltaMs
   if (!Number.isFinite(deltaMs) || deltaMs < 0) {
     return {
-      state,
+      state: deepCloneState(state),
       processedTimers: [],
       dispatchResults: [],
       errors: [
@@ -29,56 +33,63 @@ export function tick(
     };
   }
 
-  // Get existing timers (only these will be processed/completed)
-  const existingTimers = new Set(Object.keys(state.timers));
+  const working = deepCloneState(state);
 
-  // Advance time
-  state.nowMs += deltaMs;
-  state.tick += 1;
+  // Only timers that existed at the start of this tick are eligible to fire.
+  const existingTimerIds = Object.keys(working.timers);
 
-  // Decrease remaining time for all timers
-  for (const [runtimeId, timer] of Object.entries(state.timers)) {
-    timer.remainingMs -= deltaMs;
-  }
+  working.nowMs += deltaMs;
+  working.tick += 1;
 
-  // Process timers that existed at start of tick
-  for (const runtimeId of existingTimers) {
-    const timer = state.timers[runtimeId];
-    if (!timer) continue; // Timer might have been deleted in previous iteration
-
-    if (timer.remainingMs <= 0) {
-      processedTimers.push(runtimeId);
-
-      // Create timer snapshot
-      const snapshot: TimerSnapshot = {
-        runtimeId: timer.runtimeId,
-        id: timer.id,
-        durationMs: timer.durationMs,
-        bind: { ...timer.bind },
-      };
-
-      // Remove timer
-      delete state.timers[runtimeId];
-
-      // Dispatch timer.finished event
-      const event: TimerFinishedEvent = {
-        type: 'timer.finished',
-        timerRuntimeId: runtimeId,
-        timer: snapshot,
-      };
-
-      const result = dispatchEvent(game, state, event);
-      state = result.state;
-      dispatchResults.push(result);
-      errors.push(...result.errors);
+  // Decrease remaining time for the pre-existing timers only. Timers created
+  // during this tick (e.g. inside a timer.finished handler) keep their full
+  // duration and start counting down on the next tick.
+  for (const runtimeId of existingTimerIds) {
+    const timer = working.timers[runtimeId];
+    if (timer) {
+      timer.remainingMs -= deltaMs;
     }
   }
 
+  // Fire due timers in ascending `seq` order for deterministic processing.
+  const dueTimers = existingTimerIds
+    .map((id) => working.timers[id])
+    .filter((t) => t && t.remainingMs <= 0)
+    .sort((a, b) => a.seq - b.seq);
+
+  for (const timer of dueTimers) {
+    const runtimeId = timer.runtimeId;
+    // The timer may already be gone if a prior handler destroyed it.
+    if (!working.timers[runtimeId]) continue;
+
+    processedTimers.push(runtimeId);
+
+    const snapshot: TimerSnapshot = {
+      runtimeId: timer.runtimeId,
+      id: timer.id,
+      durationMs: timer.durationMs,
+      bind: { ...timer.bind },
+    };
+
+    delete working.timers[runtimeId];
+
+    const event: TimerFinishedEvent = {
+      type: 'timer.finished',
+      timerRuntimeId: runtimeId,
+      timer: snapshot,
+    };
+
+    const result = dispatchEventInternal(game, working, event, 0);
+    dispatchResults.push(result);
+    errors.push(...result.errors);
+    warnings.push(...result.warnings);
+  }
+
   return {
-    state,
+    state: working,
     processedTimers,
     dispatchResults,
     errors,
-    warnings: dispatchResults.flatMap((r) => r.warnings),
+    warnings,
   };
 }

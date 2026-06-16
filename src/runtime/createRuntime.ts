@@ -1,4 +1,3 @@
-import { CompiledGame } from '../dsl/types.js';
 import { GameState, GameEvent } from '../model/types.js';
 import { Runtime, DispatchResult, TickResult } from './types.js';
 import { compileGame } from '../dsl/compileGame.js';

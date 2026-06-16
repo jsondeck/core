@@ -7,16 +7,19 @@ Thank you for your interest in contributing! This document describes the develop
 We follow [GitHub Flow](https://guides.github.com/introduction/flow/) for all development:
 
 1. **Create a feature branch** from `main`:
+
    ```bash
    git checkout -b feature/my-feature
    ```
 
 2. **Commit your changes** with clear, atomic commits:
+
    ```bash
    git commit -m "feat: add support for new condition type"
    ```
 
 3. **Push your branch** to GitHub:
+
    ```bash
    git push origin feature/my-feature
    ```
@@ -66,7 +69,7 @@ Fixes #42
 ### Setup
 
 ```bash
-npm install --legacy-peer-deps
+npm install   # or `npm ci` for a clean, lockfile-exact install
 ```
 
 ### Running Checks

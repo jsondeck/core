@@ -45,7 +45,9 @@ GameState + ViewModel
 const game = compileGame(rawJson);
 // или
 const result = safeCompileGame(rawJson);
-if (result.ok) { /* ... */ }
+if (result.ok) {
+  /* ... */
+}
 ```
 
 ### 2. Состояние игры
@@ -55,8 +57,8 @@ if (result.ok) { /* ... */ }
 ```typescript
 interface GameState {
   gameId: string;
-  tick: number;              // Сколько прошло тиков
-  nowMs: number;            // Общее прошедшее время в мс
+  tick: number; // Сколько прошло тиков
+  nowMs: number; // Общее прошедшее время в мс
   vars: Record<string, any>; // Переменные игры
   cards: Record<string, CardInstance>;
   zones: Record<string, ZoneState>;
@@ -73,7 +75,7 @@ interface GameState {
 const result = dispatchEvent(game, state, {
   type: 'card.clicked',
   source: 'card_id',
-  position: { x: 100, y: 200 }
+  position: { x: 100, y: 200 },
 });
 
 state = result.state; // Обновлённое состояние
@@ -88,9 +90,7 @@ state = result.state; // Обновлённое состояние
   "id": "my_rule",
   "on": "card.dropped_on_card",
   "if": { "card.has_tag": ["$source", "interactive"] },
-  "then": [
-    { "start_timer": { "id": "my_timer", "duration_ms": 5000 } }
-  ]
+  "then": [{ "start_timer": { "id": "my_timer", "duration_ms": 5000 } }]
 }
 ```
 
@@ -140,7 +140,7 @@ const newState = result.state;
 
 ```typescript
 interface JsonDeckError {
-  code: string;  // 'UNKNOWN_CARD', 'SEMANTIC_VALIDATION_ERROR', и т.д.
+  code: string; // 'UNKNOWN_CARD', 'SEMANTIC_VALIDATION_ERROR', и т.д.
   message: string;
   path?: string; // Где в DSL или состоянии
 }
@@ -165,17 +165,13 @@ interface JsonDeckError {
     "my-card": { "title": "Моя карта", "tags": ["interactive"] }
   },
   "initialState": {
-    "cards": [
-      { "id": "c1", "type": "my-card", "zone": "main" }
-    ]
+    "cards": [{ "id": "c1", "type": "my-card", "zone": "main" }]
   },
   "rules": [
     {
       "id": "handle-click",
       "on": "card.clicked",
-      "then": [
-        { "flip_card": { "card": "$source", "face": "down" } }
-      ]
+      "then": [{ "flip_card": { "card": "$source", "face": "down" } }]
     }
   ]
 }
@@ -188,12 +184,12 @@ interface JsonDeckError {
 Основные экспорты:
 
 ```typescript
-export { compileGame, safeCompileGame }
-export { createInitialState }
-export { dispatchEvent }
-export { tick }
-export { buildViewModel }
-export { createRuntime }
+export { compileGame, safeCompileGame };
+export { createInitialState };
+export { dispatchEvent };
+export { tick };
+export { buildViewModel };
+export { createRuntime };
 ```
 
 ## Общие паттерны

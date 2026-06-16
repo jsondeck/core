@@ -9,7 +9,7 @@ describe('tick & timers', () => {
     let state = createInitialState(game);
 
     // Trigger card.dropped_on_card
-    let result = dispatchEvent(game, state, {
+    const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
       source: 'card_a_1',
       target: 'card_b_1',
@@ -41,7 +41,7 @@ describe('tick & timers', () => {
     let state = createInitialState(game);
 
     // Create timer
-    let result = dispatchEvent(game, state, {
+    const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
       source: 'card_a_1',
       target: 'card_b_1',
@@ -50,7 +50,6 @@ describe('tick & timers', () => {
 
     state = result.state;
     const timerId = Object.keys(state.timers)[0];
-    const initialRemaining = state.timers[timerId].remainingMs;
 
     // Tick for partial time
     const tickResult = tick(game, state, 2500);
@@ -115,7 +114,7 @@ describe('tick & timers', () => {
     let state = createInitialState(multiTimerGame);
 
     // Start timers
-    let result = dispatchEvent(multiTimerGame, state, { type: 'game.started' });
+    const result = dispatchEvent(multiTimerGame, state, { type: 'game.started' });
     state = result.state;
 
     expect(Object.keys(state.timers).length).toBe(2);
@@ -128,7 +127,7 @@ describe('tick & timers', () => {
   });
 
   it('should validate deltaMs', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
 
     const negativeResult = tick(game, state, -100);
     expect(negativeResult.errors.some((e) => e.code === 'INVALID_TICK_DELTA')).toBe(true);
@@ -197,7 +196,7 @@ describe('tick & timers', () => {
     let state = createInitialState(nestedTimerGame);
 
     // Start first timer
-    let result = dispatchEvent(nestedTimerGame, state, { type: 'game.started' });
+    const result = dispatchEvent(nestedTimerGame, state, { type: 'game.started' });
     state = result.state;
     expect(Object.keys(state.timers).length).toBe(1);
 

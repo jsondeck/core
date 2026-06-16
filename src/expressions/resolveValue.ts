@@ -95,22 +95,43 @@ export function resolveValue(input: unknown, context: ResolveContext): ResolveRe
   return { value, warnings };
 }
 
+/**
+ * Recursively resolves every `$`-expression found anywhere inside the input,
+ * descending into nested objects and arrays. Non-expression values are returned
+ * as-is. Used for `start_timer.bind` and `emit_event.payload` deep-resolution.
+ */
+export function deepResolve(input: unknown, context: ResolveContext): [unknown, JsonDeckWarning[]] {
+  const warnings: JsonDeckWarning[] = [];
+
+  const visit = (value: unknown): unknown => {
+    if (typeof value === 'string') {
+      if (value.startsWith('$')) {
+        const resolved = resolveValue(value, context);
+        warnings.push(...resolved.warnings);
+        return resolved.value;
+      }
+      return value;
+    }
+    if (Array.isArray(value)) {
+      return value.map(visit);
+    }
+    if (value !== null && typeof value === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [key, val] of Object.entries(value)) {
+        out[key] = visit(val);
+      }
+      return out;
+    }
+    return value;
+  };
+
+  return [visit(input), warnings];
+}
+
 export function deepResolveRecord(
   obj: Record<string, unknown>,
   context: ResolveContext,
 ): [Record<string, unknown>, JsonDeckWarning[]] {
-  const warnings: JsonDeckWarning[] = [];
-  const result: Record<string, unknown> = {};
-
-  for (const [key, val] of Object.entries(obj)) {
-    if (typeof val === 'string' && val.startsWith('$')) {
-      const { value, warnings: valWarnings } = resolveValue(val, context);
-      result[key] = value;
-      warnings.push(...valWarnings);
-    } else {
-      result[key] = val;
-    }
-  }
-
-  return [result, warnings];
+  const [resolved, warnings] = deepResolve(obj, context);
+  return [resolved as Record<string, unknown>, warnings];
 }

@@ -1,9 +1,10 @@
 import { GameDefinition, Command } from './types.js';
 import { JsonDeckError, JsonDeckWarning } from '../errors/types.js';
 
-export function validateGameSemantically(
-  game: GameDefinition,
-): { errors: JsonDeckError[]; warnings: JsonDeckWarning[] } {
+export function validateGameSemantically(game: GameDefinition): {
+  errors: JsonDeckError[];
+  warnings: JsonDeckWarning[];
+} {
   const errors: JsonDeckError[] = [];
   const warnings: JsonDeckWarning[] = [];
 
@@ -107,6 +108,18 @@ export function validateGameSemantically(
     const rule = game.rules[ruleIdx];
     for (let cmdIdx = 0; cmdIdx < rule.then.length; cmdIdx++) {
       const cmd = rule.then[cmdIdx];
+
+      // Each command object must contain exactly one key.
+      const keyCount = Object.keys(cmd as Record<string, unknown>).length;
+      if (keyCount !== 1) {
+        errors.push({
+          code: 'SEMANTIC_VALIDATION_ERROR',
+          message: `Each command must contain exactly one key, found ${keyCount}`,
+          path: `rules[${ruleIdx}].then[${cmdIdx}]`,
+        });
+        continue;
+      }
+
       const cmdError = validateCommand(cmd, game);
       if (cmdError) {
         errors.push({
@@ -155,6 +168,11 @@ export function validateGameSemantically(
   return { errors, warnings };
 }
 
+/** A value is a runtime expression if it is a string starting with `$`. */
+function isExpression(value: unknown): boolean {
+  return typeof value === 'string' && value.startsWith('$');
+}
+
 function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | null {
   if ('move_card' in cmd) {
     const mc = cmd.move_card;
@@ -180,14 +198,24 @@ function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | nu
         message: `Unknown zone in create_card: ${cc.zone}`,
       };
     }
-    // Check count is positive integer
-    if (typeof cc.count === 'number') {
+    // count: a literal must be a positive integer; an expression ($...) is
+    // deferred to runtime. A non-expression string literal (e.g. "3") is an error.
+    if (isExpression(cc.count)) {
+      // ok — resolved at runtime
+    } else if (typeof cc.count === 'number') {
       if (!Number.isInteger(cc.count) || cc.count < 1) {
         return {
           code: 'SEMANTIC_VALIDATION_ERROR',
           message: `create_card.count must be a positive integer, got: ${cc.count}`,
         };
       }
+    } else {
+      return {
+        code: 'SEMANTIC_VALIDATION_ERROR',
+        message: `create_card.count must be a positive integer or a $-expression, got: ${JSON.stringify(
+          cc.count,
+        )}`,
+      };
     }
   }
 
@@ -219,10 +247,23 @@ function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | nu
 
   if ('start_timer' in cmd) {
     const st = cmd.start_timer;
-    if (typeof st.duration_ms === 'number' && st.duration_ms <= 0) {
+    // duration_ms: a literal must be > 0; an expression ($...) is deferred to
+    // runtime. A non-expression string literal (e.g. "100") is an error.
+    if (isExpression(st.duration_ms)) {
+      // ok — resolved at runtime
+    } else if (typeof st.duration_ms === 'number') {
+      if (st.duration_ms <= 0) {
+        return {
+          code: 'SEMANTIC_VALIDATION_ERROR',
+          message: `start_timer.duration_ms must be positive, got: ${st.duration_ms}`,
+        };
+      }
+    } else {
       return {
         code: 'SEMANTIC_VALIDATION_ERROR',
-        message: `start_timer.duration_ms must be positive, got: ${st.duration_ms}`,
+        message: `start_timer.duration_ms must be a positive number or a $-expression, got: ${JSON.stringify(
+          st.duration_ms,
+        )}`,
       };
     }
   }

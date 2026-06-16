@@ -1,17 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import {
-  compileGame,
-  createInitialState,
-  dispatchEvent,
-  JsonDeckCompileError,
-} from '../src/index.js';
+import { compileGame, createInitialState, dispatchEvent } from '../src/index.js';
 import fixtureData from './fixtures/generic-card-interaction.json';
 
 describe('dispatchEvent', () => {
   const game = compileGame(fixtureData);
 
   it('should reject invalid event type', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, { type: 'bad.event' } as any);
 
     expect(result.accepted).toBe(false);
@@ -20,7 +15,7 @@ describe('dispatchEvent', () => {
   });
 
   it('should reject card.clicked without source', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, {
       type: 'card.clicked',
       source: undefined,
@@ -31,7 +26,7 @@ describe('dispatchEvent', () => {
   });
 
   it('should create timer on card.dropped_on_card for actor on target', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
       source: 'card_a_1',
@@ -52,7 +47,7 @@ describe('dispatchEvent', () => {
   });
 
   it('should not match rule if condition fails', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     // Drop actor on actor (should not match, need target tag)
     const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
@@ -66,7 +61,7 @@ describe('dispatchEvent', () => {
   });
 
   it('should handle game.started event', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, { type: 'game.started' });
 
     // Fixture has no rule for game.started, so accepted should be false
@@ -74,7 +69,7 @@ describe('dispatchEvent', () => {
   });
 
   it('should emit custom events', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, {
       type: 'custom.test_event',
       payload: { test: true },
@@ -85,25 +80,54 @@ describe('dispatchEvent', () => {
     expect(result.errors.length).toBe(0);
   });
 
-  it('should not mutate input state', () => {
-    let state = createInitialState(game);
-    const originalVars = { ...state.vars };
-    const originalCards = { ...state.cards };
+  it('should not mutate input state (deep snapshot)', () => {
+    const state = createInitialState(game);
+    const snapshot = JSON.stringify(state);
 
-    dispatchEvent(game, state, {
+    const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
       source: 'card_a_1',
       target: 'card_b_1',
       position: { x: 540, y: 320 },
     });
 
-    // Original state should not change during dispatch
-    // Note: dispatchEvent returns new state, doesn't mutate input
-    expect(state.vars).toEqual(originalVars);
+    // The rule creates a timer; the returned state must reflect it...
+    expect(Object.keys(result.state.timers).length).toBe(1);
+    // ...but the input state must be byte-for-byte unchanged.
+    expect(JSON.stringify(state)).toBe(snapshot);
+    expect(Object.keys(state.timers).length).toBe(0);
+    expect(result.state).not.toBe(state);
+  });
+
+  it('should aggregate follow-up executedRules from emit_event chains', () => {
+    const chainGame = compileGame({
+      jsondeck: '0.1',
+      id: 'chain',
+      title: 'Chain',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z1: { type: 'free_space', layout: 'free' } },
+      cardTypes: {},
+      initialState: { cards: [] },
+      variables: { n: { type: 'number', initial: 0 } },
+      rules: [
+        { id: 'parent', on: 'game.started', then: [{ emit_event: { type: 'custom.next' } }] },
+        { id: 'child', on: 'custom.next', then: [{ set_var: { name: 'n', value: 2 } }] },
+      ],
+    });
+
+    const state = createInitialState(chainGame);
+    const result = dispatchEvent(chainGame, state, { type: 'game.started' });
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.vars.n).toBe(2);
+    // Both parent and follow-up child must appear in telemetry.
+    expect(result.executedRules).toContain('parent');
+    expect(result.executedRules).toContain('child');
+    expect(result.matchedRules).toContain('child');
   });
 
   it('should handle non-existent cards gracefully', () => {
-    let state = createInitialState(game);
+    const state = createInitialState(game);
     const result = dispatchEvent(game, state, {
       type: 'card.dropped_on_card',
       source: 'nonexistent',
@@ -133,7 +157,7 @@ describe('dispatchEvent', () => {
       ],
     });
 
-    let state = createInitialState(deepGame);
+    const state = createInitialState(deepGame);
     const result = dispatchEvent(deepGame, state, { type: 'custom.emit_test' } as any);
 
     expect(result.errors.some((e) => e.code === 'MAX_EVENT_DEPTH_EXCEEDED')).toBe(true);

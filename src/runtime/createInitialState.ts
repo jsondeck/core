@@ -1,24 +1,24 @@
-import { CompiledGame } from '../dsl/types.js';
-import { GameState } from '../model/types.js';
+import { CompiledGame, GameValue } from '../dsl/types.js';
+import { GameState, CardInstance, ZoneState } from '../model/types.js';
 
 export function createInitialState(game: CompiledGame): GameState {
-  const vars: Record<string, any> = {};
+  const vars: Record<string, GameValue> = {};
   for (const [varName, varDef] of Object.entries(game.variables)) {
     vars[varName] = varDef.initial;
   }
 
-  const zones: Record<string, any> = {};
+  const zones: Record<string, ZoneState> = {};
   for (const zoneId of Object.keys(game.zones)) {
     zones[zoneId] = {
       id: zoneId,
-      cardIds: [] as string[],
+      cardIds: [],
     };
   }
 
-  const cards: Record<string, any> = {};
+  const cards: Record<string, CardInstance> = {};
   for (const initialCard of game.initialState.cards) {
     const cardType = game.cardTypes[initialCard.type];
-    const card = {
+    const card: CardInstance = {
       id: initialCard.id,
       type: initialCard.type,
       zone: initialCard.zone,

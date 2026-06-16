@@ -2,10 +2,7 @@ import { GameEvent } from '../model/types.js';
 import { GameState } from '../model/types.js';
 import { ResolveContext } from '../expressions/resolveValue.js';
 
-export function createEventContext(
-  event: GameEvent,
-  state: GameState,
-): ResolveContext | null {
+export function createEventContext(event: GameEvent, state: GameState): ResolveContext | null {
   switch (event.type) {
     case 'game.started':
       return {

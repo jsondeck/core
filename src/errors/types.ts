@@ -1,3 +1,5 @@
+import type { CompiledGame } from '../dsl/types.js';
+
 export interface JsonDeckError {
   code: string;
   message: string;
@@ -24,5 +26,5 @@ export class JsonDeckCompileError extends Error {
 }
 
 export type CompileGameResult =
-  | { ok: true; game: any; warnings: JsonDeckWarning[] }
+  | { ok: true; game: CompiledGame; warnings: JsonDeckWarning[] }
   | { ok: false; errors: JsonDeckError[]; warnings: JsonDeckWarning[] };

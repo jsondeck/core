@@ -91,41 +91,69 @@ export const conditionSchema: z.ZodType<any> = z.lazy(() =>
   ]),
 );
 
-// Command schema - recursive
-export const commandSchema: z.ZodType<any> = z.union([
-  z.object({
-    move_card: z.object({
-      card: z.any(),
-      to_zone: z.any(),
-      x: z.any().optional(),
-      y: z.any().optional(),
-    }),
-  }),
-  z.object({
-    create_card: z.object({
-      type: z.any(),
-      zone: z.any(),
-      count: z.any(),
-      near: z.any().optional(),
-    }),
-  }),
-  z.object({ destroy_card: z.object({ card: z.any() }) }),
-  z.object({ set_var: z.object({ name: z.string(), value: z.any() }) }),
-  z.object({ modify_var: z.object({ name: z.string(), add: z.any() }) }),
-  z.object({ flip_card: z.object({ card: z.any(), face: z.enum(['up', 'down']) }) }),
-  z.object({
-    start_timer: z.object({
-      id: z.string(),
-      duration_ms: z.any(),
-      bind: z.record(z.any()).optional(),
-    }),
-  }),
-  z.object({
-    emit_event: z.object({
-      type: z.string(),
-      payload: z.record(z.any()).optional(),
-    }),
-  }),
+// Command schema.
+// Each branch is `.strict()` so that command objects with extra/unknown keys
+// (e.g. two commands merged into one object) are rejected at the structural
+// validation stage with a DSL_VALIDATION_ERROR, enforcing the "exactly one
+// command key" rule from the spec.
+const expressionOrNumber = z.union([z.number(), z.string()]);
+
+export const commandSchema: z.ZodType<unknown> = z.union([
+  z
+    .object({
+      move_card: z
+        .object({
+          card: z.unknown(),
+          to_zone: z.unknown(),
+          x: z.unknown().optional(),
+          y: z.unknown().optional(),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      create_card: z
+        .object({
+          type: z.unknown(),
+          zone: z.unknown(),
+          // Literal number or `$`-expression; semantic validation enforces
+          // positive-integer for the literal case.
+          count: expressionOrNumber,
+          near: z.unknown().optional(),
+        })
+        .strict(),
+    })
+    .strict(),
+  z.object({ destroy_card: z.object({ card: z.unknown() }).strict() }).strict(),
+  z.object({ set_var: z.object({ name: z.string(), value: z.unknown() }).strict() }).strict(),
+  z.object({ modify_var: z.object({ name: z.string(), add: z.unknown() }).strict() }).strict(),
+  z
+    .object({ flip_card: z.object({ card: z.unknown(), face: z.enum(['up', 'down']) }).strict() })
+    .strict(),
+  z
+    .object({
+      start_timer: z
+        .object({
+          id: z.string(),
+          // Literal number or `$`-expression; semantic validation enforces > 0
+          // for the literal case.
+          duration_ms: expressionOrNumber,
+          bind: z.record(z.unknown()).optional(),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      emit_event: z
+        .object({
+          type: z.string(),
+          payload: z.record(z.unknown()).optional(),
+        })
+        .strict(),
+    })
+    .strict(),
 ]);
 
 const ruleSchema = z.object({

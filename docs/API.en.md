@@ -51,14 +51,14 @@ const result = dispatchEvent(game, state, {
   type: 'card.dropped_on_card',
   source: 'card_a',
   target: 'card_b',
-  position: { x: 100, y: 200 }
+  position: { x: 100, y: 200 },
 });
 
-console.log(result.state);          // Updated state
-console.log(result.accepted);       // true if any rule matched
-console.log(result.executedRules);  // ['rule_id', ...]
-console.log(result.errors);         // Any errors
-console.log(result.warnings);       // Any warnings
+console.log(result.state); // Updated state
+console.log(result.accepted); // true if any rule matched
+console.log(result.executedRules); // ['rule_id', ...]
+console.log(result.errors); // Any errors
+console.log(result.warnings); // Any warnings
 ```
 
 ### `tick(game: CompiledGame, state: GameState, deltaMs: number): TickResult`
@@ -68,9 +68,9 @@ Advances time and processes timers.
 ```typescript
 const result = tick(game, state, 1000); // Advance 1 second
 
-console.log(result.state);            // Updated state
-console.log(result.processedTimers);  // Completed timer IDs
-console.log(result.dispatchResults);  // Results from timer.finished events
+console.log(result.state); // Updated state
+console.log(result.processedTimers); // Completed timer IDs
+console.log(result.dispatchResults); // Results from timer.finished events
 ```
 
 ### `buildViewModel(game: CompiledGame, state: GameState): GameViewModel`
@@ -80,10 +80,10 @@ Builds a render-neutral view model from game and state.
 ```typescript
 const vm = buildViewModel(game, state);
 
-console.log(vm.table);     // Table dimensions and style
-console.log(vm.zones);     // Zones with layout info
-console.log(vm.cards);     // Cards with calculated positions
-console.log(vm.hud);       // HUD items with resolved values
+console.log(vm.table); // Table dimensions and style
+console.log(vm.zones); // Zones with layout info
+console.log(vm.cards); // Cards with calculated positions
+console.log(vm.hud); // HUD items with resolved values
 ```
 
 ## Wrapper
@@ -95,11 +95,11 @@ Convenience wrapper that manages game and state internally.
 ```typescript
 const runtime = createRuntime(gameJson);
 
-runtime.dispatch(event);          // Returns DispatchResult
-runtime.tick(deltaMs);            // Returns TickResult
+runtime.dispatch(event); // Returns DispatchResult
+runtime.tick(deltaMs); // Returns TickResult
 const state = runtime.getState();
 const vm = runtime.getViewModel();
-runtime.reset();                  // Reset to initial state
+runtime.reset(); // Reset to initial state
 ```
 
 ## Types
@@ -226,9 +226,9 @@ interface HudItemViewModel {
 
 ```typescript
 interface JsonDeckError {
-  code: string;      // Error code
-  message: string;   // Human readable message
-  path?: string;     // Path in DSL or state
+  code: string; // Error code
+  message: string; // Human readable message
+  path?: string; // Path in DSL or state
   details?: unknown; // Additional context
 }
 

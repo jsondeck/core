@@ -45,7 +45,9 @@ Convert raw JSON to internal `CompiledGame`:
 const game = compileGame(rawJson);
 // or
 const result = safeCompileGame(rawJson);
-if (result.ok) { /* ... */ }
+if (result.ok) {
+  /* ... */
+}
 ```
 
 ### 2. Game State
@@ -55,8 +57,8 @@ Immutable snapshot of game at any point:
 ```typescript
 interface GameState {
   gameId: string;
-  tick: number;              // How many ticks have passed
-  nowMs: number;            // Total elapsed time in ms
+  tick: number; // How many ticks have passed
+  nowMs: number; // Total elapsed time in ms
   vars: Record<string, any>; // Game variables
   cards: Record<string, CardInstance>;
   zones: Record<string, ZoneState>;
@@ -73,7 +75,7 @@ Trigger rules by dispatching events:
 const result = dispatchEvent(game, state, {
   type: 'card.clicked',
   source: 'card_id',
-  position: { x: 100, y: 200 }
+  position: { x: 100, y: 200 },
 });
 
 state = result.state; // Updated state
@@ -88,9 +90,7 @@ Rules respond to events with conditions and commands:
   "id": "my_rule",
   "on": "card.dropped_on_card",
   "if": { "card.has_tag": ["$source", "interactive"] },
-  "then": [
-    { "start_timer": { "id": "my_timer", "duration_ms": 5000 } }
-  ]
+  "then": [{ "start_timer": { "id": "my_timer", "duration_ms": 5000 } }]
 }
 ```
 
@@ -140,7 +140,7 @@ Structured errors with codes and paths:
 
 ```typescript
 interface JsonDeckError {
-  code: string;  // 'UNKNOWN_CARD', 'SEMANTIC_VALIDATION_ERROR', etc
+  code: string; // 'UNKNOWN_CARD', 'SEMANTIC_VALIDATION_ERROR', etc
   message: string;
   path?: string; // Where in DSL or state
 }
@@ -165,17 +165,13 @@ Quick example:
     "my-card": { "title": "My Card", "tags": ["interactive"] }
   },
   "initialState": {
-    "cards": [
-      { "id": "c1", "type": "my-card", "zone": "main" }
-    ]
+    "cards": [{ "id": "c1", "type": "my-card", "zone": "main" }]
   },
   "rules": [
     {
       "id": "handle-click",
       "on": "card.clicked",
-      "then": [
-        { "flip_card": { "card": "$source", "face": "down" } }
-      ]
+      "then": [{ "flip_card": { "card": "$source", "face": "down" } }]
     }
   ]
 }
@@ -188,12 +184,12 @@ See [API.en.md](./API.en.md) for complete API documentation.
 Key exports:
 
 ```typescript
-export { compileGame, safeCompileGame }
-export { createInitialState }
-export { dispatchEvent }
-export { tick }
-export { buildViewModel }
-export { createRuntime }
+export { compileGame, safeCompileGame };
+export { createInitialState };
+export { dispatchEvent };
+export { tick };
+export { buildViewModel };
+export { createRuntime };
 ```
 
 ## Common Patterns

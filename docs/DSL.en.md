@@ -25,23 +25,17 @@ See the full ТЗ file for detailed examples and acceptance criteria.
     "card_type": { "title": "Card", "tags": ["tag"] }
   },
   "initialState": {
-    "cards": [
-      { "id": "c1", "type": "card_type", "zone": "zone_id" }
-    ]
+    "cards": [{ "id": "c1", "type": "card_type", "zone": "zone_id" }]
   },
   "rules": [
     {
       "id": "rule_id",
       "on": "game.started",
       "if": { "eq": [1, 1] },
-      "then": [
-        { "move_card": { "card": "c1", "to_zone": "zone_id" } }
-      ]
+      "then": [{ "move_card": { "card": "c1", "to_zone": "zone_id" } }]
     }
   ],
-  "hud": [
-    { "id": "hud_id", "label": "Label", "value": "$vars.var_name" }
-  ],
+  "hud": [{ "id": "hud_id", "label": "Label", "value": "$vars.var_name" }],
   "theme": {
     "card": { "width": 120, "height": 170 }
   }
@@ -86,6 +80,7 @@ See the full ТЗ file for detailed examples and acceptance criteria.
 ```
 
 Variable types:
+
 - `number` — Integer or floating-point
 - `string` — Text
 - `boolean` — true/false
@@ -196,6 +191,7 @@ Rules respond to events:
 ```
 
 Event types:
+
 - Built-in: `game.started`, `card.clicked`, `card.drag_started`, `card.dropped_on_card`, `card.dropped_on_zone`, `card.dropped_on_empty`, `timer.finished`
 - Custom: `custom.*`
 
