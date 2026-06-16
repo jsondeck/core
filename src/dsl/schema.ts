@@ -92,10 +92,12 @@ export const conditionSchema: z.ZodType<any> = z.lazy(() =>
 );
 
 // Command schema.
-// Each branch is `.strict()` so that command objects with extra/unknown keys
-// (e.g. two commands merged into one object) are rejected at the structural
-// validation stage with a DSL_VALIDATION_ERROR, enforcing the "exactly one
-// command key" rule from the spec.
+// The command *parameter* objects are `.strict()` (unknown params are an error),
+// but the outer one-key wrapper is `.passthrough()`. Passthrough keeps any extra
+// top-level keys in the parsed output so semantic validation can detect a command
+// object with more than one key and report it as a SEMANTIC_VALIDATION_ERROR
+// (spec §8.2 classifies "exactly one key" as a semantic rule). A bogus wrapper
+// with no known command key still fails the union (DSL_VALIDATION_ERROR).
 const expressionOrNumber = z.union([z.number(), z.string()]);
 
 export const commandSchema: z.ZodType<unknown> = z.union([
@@ -110,7 +112,7 @@ export const commandSchema: z.ZodType<unknown> = z.union([
         })
         .strict(),
     })
-    .strict(),
+    .passthrough(),
   z
     .object({
       create_card: z
@@ -124,13 +126,13 @@ export const commandSchema: z.ZodType<unknown> = z.union([
         })
         .strict(),
     })
-    .strict(),
-  z.object({ destroy_card: z.object({ card: z.unknown() }).strict() }).strict(),
-  z.object({ set_var: z.object({ name: z.string(), value: z.unknown() }).strict() }).strict(),
-  z.object({ modify_var: z.object({ name: z.string(), add: z.unknown() }).strict() }).strict(),
+    .passthrough(),
+  z.object({ destroy_card: z.object({ card: z.unknown() }).strict() }).passthrough(),
+  z.object({ set_var: z.object({ name: z.string(), value: z.unknown() }).strict() }).passthrough(),
+  z.object({ modify_var: z.object({ name: z.string(), add: z.unknown() }).strict() }).passthrough(),
   z
     .object({ flip_card: z.object({ card: z.unknown(), face: z.enum(['up', 'down']) }).strict() })
-    .strict(),
+    .passthrough(),
   z
     .object({
       start_timer: z
@@ -143,7 +145,7 @@ export const commandSchema: z.ZodType<unknown> = z.union([
         })
         .strict(),
     })
-    .strict(),
+    .passthrough(),
   z
     .object({
       emit_event: z
@@ -153,7 +155,7 @@ export const commandSchema: z.ZodType<unknown> = z.union([
         })
         .strict(),
     })
-    .strict(),
+    .passthrough(),
 ]);
 
 const ruleSchema = z.object({

@@ -112,6 +112,11 @@ export function dispatchEventInternal(
     emittedEvents.push(...ruleEmittedEvents);
   }
 
+  // `emittedEvents` holds the events emitted by THIS level's rules (the FIFO
+  // queue to dispatch). `aggregatedEmitted` additionally collects events emitted
+  // by follow-up dispatches so the top-level result exposes the whole chain.
+  const aggregatedEmitted: GameEvent[] = [...emittedEvents];
+
   // Process follow-up (emit_event) events FIFO on the same working copy.
   if (emittedEvents.length > 0) {
     if (depth >= MAX_EVENT_DEPTH) {
@@ -127,6 +132,7 @@ export function dispatchEventInternal(
         matchedRules.push(...followUp.matchedRules);
         executedRules.push(...followUp.executedRules);
         commands.push(...followUp.commands);
+        aggregatedEmitted.push(...followUp.emittedEvents);
         warnings.push(...followUp.warnings);
         errors.push(...followUp.errors);
       }
@@ -139,7 +145,7 @@ export function dispatchEventInternal(
     matchedRules,
     executedRules,
     commands,
-    emittedEvents,
+    emittedEvents: aggregatedEmitted,
     errors,
     warnings,
   };

@@ -1,0 +1,195 @@
+{
+  "jsondeck": "0.1",
+  "id": "viewmodel-layout-hud-theme",
+  "title": "ViewModel layout, HUD and theme",
+  "table": {
+    "width": 960,
+    "height": 720,
+    "background": "#0b6623",
+    "camera": {
+      "mode": "fixed"
+    }
+  },
+  "variables": {
+    "score": {
+      "type": "number",
+      "initial": 42
+    },
+    "phase": {
+      "type": "string",
+      "initial": "layout"
+    }
+  },
+  "zones": {
+    "free_zone": {
+      "title": "Free",
+      "type": "free_space",
+      "layout": "free",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 300,
+        "h": 200
+      }
+    },
+    "pile_zone": {
+      "title": "Pile",
+      "type": "deck",
+      "layout": "pile",
+      "rect": {
+        "x": 400,
+        "y": 0,
+        "w": 150,
+        "h": 180
+      }
+    },
+    "row_zone": {
+      "title": "Row",
+      "type": "hand",
+      "layout": "row",
+      "rect": {
+        "x": 0,
+        "y": 250,
+        "w": 500,
+        "h": 200
+      }
+    },
+    "grid_zone": {
+      "title": "Grid",
+      "type": "table",
+      "layout": "grid",
+      "rect": {
+        "x": 600,
+        "y": 250,
+        "w": 260,
+        "h": 400
+      }
+    }
+  },
+  "cardTypes": {
+    "alpha": {
+      "title": "Alpha",
+      "description": "Alpha card",
+      "art": "alpha.png",
+      "tags": [
+        "alpha"
+      ],
+      "props": {
+        "value": 1
+      }
+    },
+    "beta": {
+      "title": "Beta",
+      "description": "Beta card",
+      "tags": [
+        "beta"
+      ],
+      "props": {
+        "value": 2
+      }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "free_1",
+        "type": "alpha",
+        "zone": "free_zone",
+        "x": 10,
+        "y": 20,
+        "z": 5,
+        "face": "up"
+      },
+      {
+        "id": "free_2",
+        "type": "beta",
+        "zone": "free_zone",
+        "face": "down"
+      },
+      {
+        "id": "pile_1",
+        "type": "alpha",
+        "zone": "pile_zone",
+        "face": "up"
+      },
+      {
+        "id": "pile_2",
+        "type": "beta",
+        "zone": "pile_zone",
+        "face": "up"
+      },
+      {
+        "id": "row_1",
+        "type": "alpha",
+        "zone": "row_zone",
+        "face": "up"
+      },
+      {
+        "id": "row_2",
+        "type": "beta",
+        "zone": "row_zone",
+        "face": "up"
+      },
+      {
+        "id": "row_3",
+        "type": "alpha",
+        "zone": "row_zone",
+        "face": "up"
+      },
+      {
+        "id": "grid_1",
+        "type": "alpha",
+        "zone": "grid_zone",
+        "face": "up"
+      },
+      {
+        "id": "grid_2",
+        "type": "beta",
+        "zone": "grid_zone",
+        "face": "up"
+      },
+      {
+        "id": "grid_3",
+        "type": "alpha",
+        "zone": "grid_zone",
+        "face": "up"
+      },
+      {
+        "id": "grid_4",
+        "type": "beta",
+        "zone": "grid_zone",
+        "face": "up"
+      }
+    ]
+  },
+  "rules": [],
+  "hud": [
+    {
+      "id": "score",
+      "label": "Score",
+      "value": "$vars.score"
+    },
+    {
+      "id": "phase",
+      "label": "Phase",
+      "value": "$vars.phase"
+    }
+  ],
+  "theme": {
+    "card": {
+      "width": 100,
+      "height": 150,
+      "borderRadius": 7,
+      "background": "#fefefe",
+      "textColor": "#222222"
+    },
+    "zone": {
+      "border": "#abcdef",
+      "background": "#12345678"
+    },
+    "font": {
+      "family": "system",
+      "size": 14
+    }
+  }
+}

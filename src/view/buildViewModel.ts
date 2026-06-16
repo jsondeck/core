@@ -54,7 +54,9 @@ export function buildViewModel(game: CompiledGame, state: GameState): GameViewMo
 
       let x = card.x ?? 0;
       let y = card.y ?? 0;
-      let z = card.z ?? idx;
+      // For the 'free' layout the z-order comes from the card itself (default 0,
+      // per spec §18). Pile/row/grid override z with the stacking index below.
+      let z = card.z ?? 0;
 
       // Apply layout logic
       if (layout === 'pile') {

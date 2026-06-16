@@ -1,0 +1,217 @@
+{
+  "suite": "jsondeck-core-runtime-fixtures",
+  "version": "1.0.0",
+  "purpose": "Black-box fixture suite for @jsondeck/core compliance review against DSL/runtime ТЗ v0.1.",
+  "categories": {
+    "valid": "Must compile successfully and pass scripted runtime assertions.",
+    "invalid": "Must fail safeCompileGame with structured errors and must not throw validation exceptions.",
+    "runtime-negative": "Must compile successfully, then return structured dispatch/tick errors or warnings without corrupting state."
+  },
+  "testCases": [
+    {
+      "id": "V01",
+      "file": "fixtures/valid/01_generic_card_interaction.json",
+      "steps": [
+        "safeCompileGame ok",
+        "createInitialState",
+        "dispatch card.dropped_on_card source card_a_1 target card_b_1 position {x:540,y:320}",
+        "tick 5000",
+        "buildViewModel"
+      ],
+      "expected": [
+        "timer sample_timer created after dispatch",
+        "after tick card_b_1 removed",
+        "three card_type_result cards created with ids __jd_card_1..__jd_card_3",
+        "vars.counter === 3",
+        "HUD counter value === 3"
+      ]
+    },
+    {
+      "id": "V02",
+      "file": "fixtures/valid/02_immutability_probe.json",
+      "steps": [
+        "snapshot initial state",
+        "dispatch card.clicked actor_1 position {x:111,y:222}",
+        "assert original snapshot unchanged",
+        "snapshot dispatch result state",
+        "tick 50",
+        "assert pre-tick state unchanged",
+        "tick 50"
+      ],
+      "expected": [
+        "dispatch result moves actor_1 to table at 111,222 and face down",
+        "counter 1, phase clicked, clicked true",
+        "one timer remains after first tick with remainingMs 50",
+        "counter 11 after second tick",
+        "no input GameState object is mutated by dispatchEvent or tick"
+      ]
+    },
+    {
+      "id": "V03",
+      "file": "fixtures/valid/03_emit_event_chain.json",
+      "steps": [
+        "dispatch game.started"
+      ],
+      "expected": [
+        "state.vars.total === 4",
+        "state.vars.done === true",
+        "state.vars.last === root",
+        "executedRules includes emit_step_one, handle_step_one, handle_step_two",
+        "emittedEvents include custom.step_one and custom.step_two with resolved payload values"
+      ]
+    },
+    {
+      "id": "V04",
+      "file": "fixtures/valid/04_timer_order_and_deferred.json",
+      "steps": [
+        "dispatch game.started",
+        "tick 200",
+        "tick 1"
+      ],
+      "expected": [
+        "after start timers __jd_timer_1 first seq=1 and __jd_timer_2 second seq=2",
+        "after tick 200 processed timers in seq order: __jd_timer_1 then __jd_timer_2",
+        "marker === 2 after tick 200",
+        "deferred timer created during tick 200 is still pending",
+        "after tick 1 marker === 3 and final === true"
+      ]
+    },
+    {
+      "id": "V05",
+      "file": "fixtures/valid/05_viewmodel_layout_hud_theme.json",
+      "steps": [
+        "compile",
+        "createInitialState",
+        "buildViewModel"
+      ],
+      "expected": [
+        "table width 960 height 720 background #0b6623",
+        "11 cards in VM",
+        "card width 100 height 150 and theme style applied",
+        "free_1 at 10,20,z=5; free_2 defaults to 0,0,z=0",
+        "row/grid positions follow gap=8 and theme card size",
+        "HUD score 42 and phase layout"
+      ]
+    },
+    {
+      "id": "I01",
+      "file": "fixtures/invalid/01_structural_missing_required_fields.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "errors contain DSL_VALIDATION_ERROR with paths for missing required fields"
+      ]
+    },
+    {
+      "id": "I02",
+      "file": "fixtures/invalid/02_duplicate_unknown_reserved_initial_cards.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "errors contain SEMANTIC_VALIDATION_ERROR for duplicate card id, unknown card type, unknown zone, reserved __jd_ id"
+      ]
+    },
+    {
+      "id": "I03",
+      "file": "fixtures/invalid/03_command_multiple_keys.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "SEMANTIC_VALIDATION_ERROR or INVALID_COMMAND for command object containing more than one key"
+      ]
+    },
+    {
+      "id": "I04",
+      "file": "fixtures/invalid/04_command_bad_literal_values.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "structured errors for create_card.count 0, -1, 1.5 and string literal",
+        "structured errors for start_timer.duration_ms 0 and string literal"
+      ]
+    },
+    {
+      "id": "I05",
+      "file": "fixtures/invalid/05_variables_rules_hud_semantic_errors.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "errors for variable.initial type mismatch, duplicate rule.id, duplicate hud.id, hud.value without $, hud missing $vars reference"
+      ]
+    },
+    {
+      "id": "I06",
+      "file": "fixtures/invalid/06_bad_event_prefixes.json",
+      "expected": [
+        "safeCompileGame ok:false",
+        "errors for bad rule.on values and emit_event type that does not start with custom."
+      ]
+    },
+    {
+      "id": "R01",
+      "file": "fixtures/runtime-negative/01_transaction_rollback_unknown_card.json",
+      "steps": [
+        "compile ok",
+        "snapshot initial",
+        "dispatch card.clicked source card_1"
+      ],
+      "expected": [
+        "dispatch returns errors",
+        "executedRules does not include rollback_on_missing_card",
+        "returned state equals initial snapshot",
+        "input state unchanged"
+      ]
+    },
+    {
+      "id": "R02",
+      "file": "fixtures/runtime-negative/02_set_var_type_mismatch_via_expression.json",
+      "steps": [
+        "compile ok",
+        "dispatch card.clicked source card_1"
+      ],
+      "expected": [
+        "dispatch returns INVALID_VARIABLE_TYPE/COMMAND_EXECUTION_ERROR",
+        "accepted false",
+        "vars.n remains 0",
+        "input state unchanged"
+      ]
+    },
+    {
+      "id": "R03",
+      "file": "fixtures/runtime-negative/03_modify_var_non_number_add_via_expression.json",
+      "steps": [
+        "compile ok",
+        "dispatch card.clicked source card_1"
+      ],
+      "expected": [
+        "dispatch returns INVALID_VARIABLE_TYPE/COMMAND_EXECUTION_ERROR",
+        "accepted false",
+        "vars.n remains 0",
+        "input state unchanged"
+      ]
+    },
+    {
+      "id": "R04",
+      "file": "fixtures/runtime-negative/04_conditions_warnings_no_execute.json",
+      "steps": [
+        "compile ok",
+        "dispatch card.clicked source card_1"
+      ],
+      "expected": [
+        "accepted false",
+        "warnings include UNKNOWN_CARD and/or UNKNOWN_ZONE",
+        "vars.flag remains false",
+        "no state mutation"
+      ]
+    },
+    {
+      "id": "R05",
+      "file": "fixtures/runtime-negative/05_max_event_depth_loop.json",
+      "steps": [
+        "compile ok",
+        "dispatch custom.loop with timeout guard"
+      ],
+      "expected": [
+        "dispatch terminates",
+        "errors contain MAX_EVENT_DEPTH_EXCEEDED",
+        "counter is finite and deterministic",
+        "no process hang or stack overflow"
+      ]
+    }
+  ]
+}

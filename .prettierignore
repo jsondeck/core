@@ -1,0 +1,5 @@
+dist/
+node_modules/
+coverage/
+# External fixture suite — kept byte-identical to its upstream source.
+test/fixtures/external-runtime-suite/
