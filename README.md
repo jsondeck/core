@@ -1,0 +1,2 @@
+# core
+JSONDeck headless-runtime
