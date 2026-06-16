@@ -1,0 +1,61 @@
+{
+  "name": "@jsondeck/core",
+  "version": "0.1.0",
+  "description": "Headless TypeScript runtime for JSON-defined card games.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "prepack": "pnpm check"
+  },
+  "dependencies": {
+    "zod": "^3.x"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@typescript-eslint/eslint-plugin": "^7.x",
+    "@typescript-eslint/parser": "^7.x",
+    "eslint": "^9.x",
+    "prettier": "^3.x",
+    "typescript": "^5.x",
+    "vitest": "^1.x"
+  },
+  "keywords": [
+    "jsondeck",
+    "card-game",
+    "dsl",
+    "runtime",
+    "json",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsondeck/core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jsondeck/core/issues"
+  },
+  "homepage": "https://github.com/jsondeck/core#readme"
+}
