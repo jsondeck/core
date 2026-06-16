@@ -47,22 +47,35 @@ export function executeCommand(
       return err('UNKNOWN_ZONE', `Zone not found: ${zoneId}`);
     }
 
-    const oldZone = state.zones[card.zone];
-    oldZone.cardIds = oldZone.cardIds.filter((id) => id !== cardId);
-
     const updatedCard: CardInstance = { ...card, zone: zoneId };
 
+    // Resolve and validate coordinates BEFORE mutating any zone, so an invalid
+    // coordinate aborts the command cleanly (and the rule transaction rolls back).
     if (mc.x !== undefined) {
       const xRes = resolveValue(mc.x, context);
       warnings.push(...xRes.warnings);
-      updatedCard.x = xRes.value as number;
+      if (typeof xRes.value !== 'number' || !Number.isFinite(xRes.value)) {
+        return err(
+          'COMMAND_EXECUTION_ERROR',
+          `move_card.x must resolve to a finite number, got: ${JSON.stringify(xRes.value)}`,
+        );
+      }
+      updatedCard.x = xRes.value;
     }
     if (mc.y !== undefined) {
       const yRes = resolveValue(mc.y, context);
       warnings.push(...yRes.warnings);
-      updatedCard.y = yRes.value as number;
+      if (typeof yRes.value !== 'number' || !Number.isFinite(yRes.value)) {
+        return err(
+          'COMMAND_EXECUTION_ERROR',
+          `move_card.y must resolve to a finite number, got: ${JSON.stringify(yRes.value)}`,
+        );
+      }
+      updatedCard.y = yRes.value;
     }
 
+    const oldZone = state.zones[card.zone];
+    oldZone.cardIds = oldZone.cardIds.filter((id) => id !== cardId);
     state.cards[cardId] = updatedCard;
     zone.cardIds.push(cardId);
 

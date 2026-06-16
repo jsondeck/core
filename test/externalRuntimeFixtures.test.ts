@@ -123,6 +123,25 @@ describe('external-runtime-suite / valid', () => {
     expect(vm.hud.find((h) => h.id === 'score')?.value).toBe(42);
     expect(vm.hud.find((h) => h.id === 'phase')?.value).toBe('layout');
   });
+
+  it('V06 $-expression references in command literals compile and resolve', () => {
+    const c = safeCompileGame(read('valid/06_expression_references_in_commands.json'));
+    // Key assertion: $-expressions in move_card.to_zone / create_card.type /
+    // create_card.zone must NOT be rejected as unknown literal references.
+    expect(c.ok).toBe(true);
+    if (!c.ok) return;
+    const d = dispatchEvent(c.game, createInitialState(c.game), { type: 'game.started' });
+    expect(d.accepted).toBe(true);
+    expect(d.errors).toEqual([]);
+    // mover_1 moved to target_zone at the literal coordinates.
+    expect(d.state.cards['mover_1']).toMatchObject({ zone: 'target_zone', x: 50, y: 60 });
+    expect(d.state.zones['target_zone'].cardIds).toContain('mover_1');
+    expect(d.state.zones['source_zone'].cardIds).not.toContain('mover_1');
+    // two `spawned` cards created in target_zone via $-expression type/zone.
+    const spawned = Object.values(d.state.cards).filter((x) => x.type === 'spawned');
+    expect(spawned.length).toBe(2);
+    expect(spawned.every((x) => x.zone === 'target_zone')).toBe(true);
+  });
 });
 
 describe('external-runtime-suite / invalid', () => {
@@ -217,5 +236,44 @@ describe('external-runtime-suite / runtime-negative', () => {
     expect(d.errors.map((e) => e.code)).toContain('MAX_EVENT_DEPTH_EXCEEDED');
     expect(Number.isFinite(d.state.vars.counter)).toBe(true);
     expect(d.state.vars.counter).toBe(33);
+  });
+
+  it('R06 move_card non-number coordinate errors and rolls back', () => {
+    const c = safeCompileGame(read('runtime-negative/06_move_card_bad_coordinate_type.json'));
+    expect(c.ok).toBe(true);
+    if (!c.ok) return;
+    const s = createInitialState(c.game);
+    const snap = clone(s);
+    const d = dispatchEvent(c.game, s, { type: 'card.clicked', source: 'card_1' });
+    expect(d.accepted).toBe(false);
+    expect(d.errors.map((e) => e.code)).toContain('COMMAND_EXECUTION_ERROR');
+    // The earlier modify_var in the same rule must be rolled back too.
+    expect(d.state.vars.marker).toBe(0);
+    // The card must not have moved.
+    expect(d.state.cards['card_1'].zone).toBe('zone_a');
+    expect(d.state.zones['zone_b'].cardIds).not.toContain('card_1');
+    // Input state untouched.
+    expect(s).toEqual(snap);
+  });
+
+  it('R07 malformed event shapes return INVALID_EVENT without throwing or mutating', () => {
+    const c = safeCompileGame(read('runtime-negative/07_invalid_event_shape.json'));
+    expect(c.ok).toBe(true);
+    if (!c.ok) return;
+    const s = createInitialState(c.game);
+    const snap = clone(s);
+
+    const malformed: unknown[] = [null, {}, { type: 123 }];
+    for (const bad of malformed) {
+      let result;
+      expect(() => {
+        result = dispatchEvent(c.game, s, bad as never);
+      }).not.toThrow();
+      expect(result!.accepted).toBe(false);
+      expect(result!.errors.some((e) => e.code === 'INVALID_EVENT')).toBe(true);
+      expect(result!.state.vars.flag).toBe(false);
+      // Input state never mutated by a rejected dispatch.
+      expect(s).toEqual(snap);
+    }
   });
 });

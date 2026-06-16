@@ -12,17 +12,30 @@ const BUILT_IN_EVENTS: ReadonlyArray<string> = [
 ];
 
 /**
- * Lightweight structural validation of an incoming event. The argument is typed
- * as `GameEvent`, but callers may pass loosely-typed/untrusted objects, so each
- * branch re-checks the required fields at runtime after narrowing by `type`.
+ * Lightweight structural validation of an incoming event. Accepts `unknown`
+ * because callers may pass loosely-typed/untrusted values; it never throws and
+ * returns an `INVALID_EVENT` error for non-object inputs, a missing/non-string
+ * `type`, or built-in events missing required fields.
  */
-export function validateEvent(event: GameEvent): JsonDeckError | null {
-  if (!BUILT_IN_EVENTS.includes(event.type) && !event.type.startsWith('custom.')) {
+export function validateEvent(raw: unknown): JsonDeckError | null {
+  if (raw === null || typeof raw !== 'object') {
+    return { code: 'INVALID_EVENT', message: 'Event must be a non-null object' };
+  }
+
+  const type = (raw as { type?: unknown }).type;
+  if (typeof type !== 'string') {
+    return { code: 'INVALID_EVENT', message: 'Event "type" must be a string' };
+  }
+
+  if (!BUILT_IN_EVENTS.includes(type) && !type.startsWith('custom.')) {
     return {
       code: 'INVALID_EVENT',
-      message: `Invalid event type: ${event.type}. Must be built-in or start with "custom."`,
+      message: `Invalid event type: ${type}. Must be built-in or start with "custom."`,
     };
   }
+
+  // `type` is now a known/custom string; treat as a GameEvent for field checks.
+  const event = raw as GameEvent;
 
   if (event.type === 'card.clicked' || event.type === 'card.drag_started') {
     if (!event.source) {

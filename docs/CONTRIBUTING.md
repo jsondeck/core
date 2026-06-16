@@ -66,6 +66,13 @@ Fixes #42
 
 ## Development Workflow
 
+### Toolchain
+
+This repository uses **npm** (lockfile: `package-lock.json`). The original ТЗ
+referenced pnpm; see [ADR-001](./DECISIONS.md#adr-001--package-manager-npm-supersedes-тзs-pnpm)
+for the rationale and the pnpm→npm command mapping. Prettier is pinned to an
+exact version so `format:check` is deterministic across machines and CI.
+
 ### Setup
 
 ```bash

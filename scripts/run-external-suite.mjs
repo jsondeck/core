@@ -377,6 +377,96 @@ for (const [id, file, varName] of [
   });
 })();
 
+// V06 — $-expression references in command literals (edge addition)
+(() => {
+  const id = 'V06';
+  const file = 'valid/06_expression_references_in_commands.json';
+  const checks = [];
+  const c = safeCompileGame(read(file));
+  if (!c.ok) return record(id, file, { compile: 'fail', verdict: 'FAIL', errors: c.errors });
+  const d = dispatchEvent(c.game, createInitialState(c.game), { type: 'game.started' });
+  checks.push(['accepted', d.accepted === true]);
+  checks.push(['no errors', d.errors.length === 0]);
+  const mover = d.state.cards['mover_1'];
+  checks.push([
+    'mover_1 -> target_zone 50,60',
+    mover.zone === 'target_zone' && mover.x === 50 && mover.y === 60,
+  ]);
+  const spawned = Object.values(d.state.cards).filter((x) => x.type === 'spawned');
+  checks.push([
+    '2 spawned in target_zone',
+    spawned.length === 2 && spawned.every((x) => x.zone === 'target_zone'),
+  ]);
+  const pass = checks.every(([, ok]) => ok);
+  record(id, file, {
+    compile: 'ok',
+    runtime: pass ? 'ok' : 'fail',
+    verdict: pass ? 'PASS' : 'FAIL',
+    checks,
+  });
+})();
+
+// R06 — move_card bad coordinate type (edge addition)
+(() => {
+  const id = 'R06';
+  const file = 'runtime-negative/06_move_card_bad_coordinate_type.json';
+  const checks = [];
+  const c = safeCompileGame(read(file));
+  if (!c.ok) return record(id, file, { compile: 'fail', verdict: 'FAIL', errors: c.errors });
+  const s = createInitialState(c.game);
+  const snap = clone(s);
+  const d = dispatchEvent(c.game, s, { type: 'card.clicked', source: 'card_1' });
+  checks.push([
+    'COMMAND_EXECUTION_ERROR',
+    d.errors.map((e) => e.code).includes('COMMAND_EXECUTION_ERROR'),
+  ]);
+  checks.push(['accepted false', d.accepted === false]);
+  checks.push(['marker rolled back to 0', d.state.vars.marker === 0]);
+  checks.push(['card_1 stays in zone_a', d.state.cards['card_1'].zone === 'zone_a']);
+  checks.push(['input unchanged', eq(s, snap)]);
+  const pass = checks.every(([, ok]) => ok);
+  record(id, file, {
+    compile: 'ok',
+    runtime: pass ? 'ok' : 'fail',
+    verdict: pass ? 'PASS' : 'FAIL',
+    checks,
+  });
+})();
+
+// R07 — invalid event shapes (edge addition)
+(() => {
+  const id = 'R07';
+  const file = 'runtime-negative/07_invalid_event_shape.json';
+  const checks = [];
+  const c = safeCompileGame(read(file));
+  if (!c.ok) return record(id, file, { compile: 'fail', verdict: 'FAIL', errors: c.errors });
+  const s = createInitialState(c.game);
+  const snap = clone(s);
+  for (const bad of [null, {}, { type: 123 }]) {
+    let threw = false;
+    let d;
+    try {
+      d = dispatchEvent(c.game, s, bad);
+    } catch {
+      threw = true;
+    }
+    checks.push([`no throw for ${JSON.stringify(bad)}`, !threw]);
+    checks.push([
+      `INVALID_EVENT for ${JSON.stringify(bad)}`,
+      !threw && d.errors.some((e) => e.code === 'INVALID_EVENT'),
+    ]);
+  }
+  checks.push(['flag false', s.vars.flag === false]);
+  checks.push(['input unchanged', eq(s, snap)]);
+  const pass = checks.every(([, ok]) => ok);
+  record(id, file, {
+    compile: 'ok',
+    runtime: pass ? 'ok' : 'fail',
+    verdict: pass ? 'PASS' : 'FAIL',
+    checks,
+  });
+})();
+
 console.log(JSON.stringify(results, null, 2));
 const failed = results.filter((r) => r.verdict !== 'PASS');
 console.log('\n=== SUMMARY ===');

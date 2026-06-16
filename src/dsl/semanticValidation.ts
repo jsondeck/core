@@ -173,10 +173,21 @@ function isExpression(value: unknown): boolean {
   return typeof value === 'string' && value.startsWith('$');
 }
 
+/**
+ * A literal reference is a plain string (not a `$`-expression). Only literal
+ * references can be validated against the static card-type / zone catalogs at
+ * compile time; expressions are resolved and checked at runtime.
+ */
+function isLiteralRef(value: unknown): value is string {
+  return typeof value === 'string' && !value.startsWith('$');
+}
+
 function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | null {
+  // Literal references are validated at compile time; `$`-expressions are
+  // resolved at runtime and must NOT be checked against the static catalogs.
   if ('move_card' in cmd) {
     const mc = cmd.move_card;
-    if (typeof mc.to_zone === 'string' && !game.zones[mc.to_zone]) {
+    if (isLiteralRef(mc.to_zone) && !game.zones[mc.to_zone]) {
       return {
         code: 'SEMANTIC_VALIDATION_ERROR',
         message: `Unknown zone in move_card: ${mc.to_zone}`,
@@ -186,13 +197,13 @@ function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | nu
 
   if ('create_card' in cmd) {
     const cc = cmd.create_card;
-    if (typeof cc.type === 'string' && !game.cardTypes[cc.type]) {
+    if (isLiteralRef(cc.type) && !game.cardTypes[cc.type]) {
       return {
         code: 'SEMANTIC_VALIDATION_ERROR',
         message: `Unknown card type in create_card: ${cc.type}`,
       };
     }
-    if (typeof cc.zone === 'string' && !game.zones[cc.zone]) {
+    if (isLiteralRef(cc.zone) && !game.zones[cc.zone]) {
       return {
         code: 'SEMANTIC_VALIDATION_ERROR',
         message: `Unknown zone in create_card: ${cc.zone}`,

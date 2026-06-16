@@ -212,6 +212,51 @@
         "counter is finite and deterministic",
         "no process hang or stack overflow"
       ]
+    },
+    {
+      "id": "V06",
+      "_note": "Edge case added in this repo, beyond upstream suite v1.0.0.",
+      "file": "fixtures/valid/06_expression_references_in_commands.json",
+      "steps": [
+        "safeCompileGame ok",
+        "dispatch game.started"
+      ],
+      "expected": [
+        "$-expression refs in move_card.to_zone, create_card.type and create_card.zone are NOT rejected at compile time",
+        "mover_1 moved to target_zone at 50,60",
+        "two spawned cards created in target_zone"
+      ]
+    },
+    {
+      "id": "R06",
+      "_note": "Edge case added in this repo, beyond upstream suite v1.0.0.",
+      "file": "fixtures/runtime-negative/06_move_card_bad_coordinate_type.json",
+      "steps": [
+        "compile ok",
+        "dispatch card.clicked source card_1"
+      ],
+      "expected": [
+        "dispatch returns COMMAND_EXECUTION_ERROR for non-number move_card.x",
+        "accepted false",
+        "marker remains 0 (whole rule rolled back)",
+        "card_1 stays in zone_a",
+        "input state unchanged"
+      ]
+    },
+    {
+      "id": "R07",
+      "_note": "Edge case added in this repo, beyond upstream suite v1.0.0.",
+      "file": "fixtures/runtime-negative/07_invalid_event_shape.json",
+      "steps": [
+        "compile ok",
+        "dispatch null, {}, and { type: 123 }"
+      ],
+      "expected": [
+        "each dispatch returns INVALID_EVENT without throwing",
+        "accepted false",
+        "vars.flag remains false",
+        "input state unchanged"
+      ]
     }
   ]
 }

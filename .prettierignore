@@ -3,3 +3,6 @@ node_modules/
 coverage/
 # External fixture suite — kept byte-identical to its upstream source.
 test/fixtures/external-runtime-suite/
+# Generated compliance report: wide markdown tables are unstable across
+# Prettier versions, so it is excluded from format:check to keep CI deterministic.
+docs/EXTERNAL_SUITE_REPORT.md
