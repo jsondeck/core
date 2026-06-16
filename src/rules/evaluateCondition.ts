@@ -8,6 +8,22 @@ export interface ConditionResult {
   warnings: JsonDeckWarning[];
 }
 
+/**
+ * Relational comparison for `gt`/`gte`/`lt`/`lte`. Returns a negative, zero or
+ * positive number when both operands are comparable (both numbers or both
+ * strings), or `undefined` when they are not — in which case the comparison
+ * conditions evaluate to `false`.
+ */
+function compareValues(a: unknown, b: unknown): number | undefined {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+  if (typeof a === 'string' && typeof b === 'string') {
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+  return undefined;
+}
+
 export function evaluateCondition(
   condition: Condition,
   state: GameState,
@@ -53,7 +69,8 @@ export function evaluateCondition(
     const aRes = resolveValue(a, context);
     const bRes = resolveValue(b, context);
     warnings.push(...aRes.warnings, ...bRes.warnings);
-    return { value: (aRes.value as any) > (bRes.value as any), warnings };
+    const c = compareValues(aRes.value, bRes.value);
+    return { value: c !== undefined && c > 0, warnings };
   }
 
   if ('gte' in condition) {
@@ -61,7 +78,8 @@ export function evaluateCondition(
     const aRes = resolveValue(a, context);
     const bRes = resolveValue(b, context);
     warnings.push(...aRes.warnings, ...bRes.warnings);
-    return { value: (aRes.value as any) >= (bRes.value as any), warnings };
+    const c = compareValues(aRes.value, bRes.value);
+    return { value: c !== undefined && c >= 0, warnings };
   }
 
   if ('lt' in condition) {
@@ -69,7 +87,8 @@ export function evaluateCondition(
     const aRes = resolveValue(a, context);
     const bRes = resolveValue(b, context);
     warnings.push(...aRes.warnings, ...bRes.warnings);
-    return { value: (aRes.value as any) < (bRes.value as any), warnings };
+    const c = compareValues(aRes.value, bRes.value);
+    return { value: c !== undefined && c < 0, warnings };
   }
 
   if ('lte' in condition) {
@@ -77,7 +96,8 @@ export function evaluateCondition(
     const aRes = resolveValue(a, context);
     const bRes = resolveValue(b, context);
     warnings.push(...aRes.warnings, ...bRes.warnings);
-    return { value: (aRes.value as any) <= (bRes.value as any), warnings };
+    const c = compareValues(aRes.value, bRes.value);
+    return { value: c !== undefined && c <= 0, warnings };
   }
 
   // Card conditions

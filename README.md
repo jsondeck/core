@@ -31,6 +31,14 @@ yarn add @jsondeck/core
 pnpm add @jsondeck/core
 ```
 
+## Requirements
+
+- **Node.js ≥ 18** (or any modern browser / Web Worker via a bundler).
+- **ESM-only.** This package ships as an ES module (`"type": "module"`) with
+  TypeScript declarations. Import it with `import` from ESM code or a bundler.
+  CommonJS consumers can load it via dynamic `await import('@jsondeck/core')`.
+- The only runtime dependency is [`zod`](https://github.com/colinhacks/zod).
+
 ## Quick Start
 
 ```typescript
@@ -147,6 +155,27 @@ runtime.dispatch(event);
 runtime.tick(100);
 const vm = runtime.getViewModel();
 ```
+
+### Error handling
+
+Validation and runtime errors are structured (`{ code, message, path? }`).
+Use the exported `JsonDeckErrorCodes` catalog instead of magic strings:
+
+```typescript
+import { safeCompileGame, JsonDeckErrorCodes } from '@jsondeck/core';
+
+const result = safeCompileGame(raw);
+if (!result.ok) {
+  for (const err of result.errors) {
+    if (err.code === JsonDeckErrorCodes.SEMANTIC_VALIDATION_ERROR) {
+      console.warn(`Invalid DSL at ${err.path}: ${err.message}`);
+    }
+  }
+}
+```
+
+`compileGame` throws a `JsonDeckCompileError` (with `.errors` / `.warnings`)
+whose `message` summarizes the first failure for logs and stack traces.
 
 ## Architecture Principles
 

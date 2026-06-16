@@ -2,10 +2,10 @@ import { JsonDeckWarning } from '../errors/types.js';
 
 export interface ResolveContext {
   source?: string;
-  target?: any;
+  target?: unknown;
   position?: { x: number; y: number };
-  timer?: any;
-  event?: any;
+  timer?: unknown;
+  event?: unknown;
   vars: Record<string, unknown>;
 }
 
@@ -14,13 +14,13 @@ export interface ResolveResult {
   warnings: JsonDeckWarning[];
 }
 
-function getNestedValue(obj: any, path: string[]): [unknown, boolean] {
-  let current = obj;
+function getNestedValue(obj: unknown, path: string[]): [unknown, boolean] {
+  let current: unknown = obj;
   for (const key of path) {
     if (current == null || typeof current !== 'object') {
       return [undefined, false];
     }
-    current = (current as Record<string, any>)[key];
+    current = (current as Record<string, unknown>)[key];
   }
   return [current, true];
 }

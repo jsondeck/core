@@ -1,3 +1,4 @@
+import type { ZodError } from 'zod';
 import { GameDefinition, CompiledGame } from './types.js';
 import { gameDefinitionSchema } from './schema.js';
 import { validateGameSemantically } from './semanticValidation.js';
@@ -9,11 +10,11 @@ import {
 } from '../errors/types.js';
 import { CompiledGame as CompiledGameType } from './types.js';
 
-function zodErrorsToJsonDeckErrors(zodError: any): JsonDeckError[] {
+function zodErrorsToJsonDeckErrors(zodError: ZodError): JsonDeckError[] {
   const errors: JsonDeckError[] = [];
 
-  for (const issue of zodError.issues || []) {
-    const path = issue.path?.join('.') || 'unknown';
+  for (const issue of zodError.issues) {
+    const path = issue.path.length > 0 ? issue.path.join('.') : 'unknown';
     errors.push({
       code: 'DSL_VALIDATION_ERROR',
       message: issue.message,

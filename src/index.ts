@@ -5,14 +5,20 @@ export type {
   GameDefinition,
   CompiledGame,
   CompiledRule,
+  CompiledInitialState,
+  CompiledInitialCard,
+  Rule,
   Condition,
   Command,
+  InitialState,
+  InitialCard,
   VariableDefinition,
   CardTypeDefinition,
   ZoneDefinition,
   TableDefinition,
   ThemeDefinition,
   HudItemDefinition,
+  RuleEventType,
 } from './dsl/types.js';
 
 // Model & Runtime
@@ -36,7 +42,12 @@ export type {
   CustomGameEvent,
   TimerSnapshot,
 } from './model/types.js';
-export type { DispatchResult, TickResult, Runtime } from './runtime/types.js';
+export type {
+  DispatchResult,
+  TickResult,
+  Runtime,
+  ExecutedCommandRecord,
+} from './runtime/types.js';
 export type {
   GameViewModel,
   CardViewModel,
@@ -45,8 +56,8 @@ export type {
 } from './view/types.js';
 
 // Errors
-export { JsonDeckCompileError } from './errors/types.js';
-export type { JsonDeckError, JsonDeckWarning } from './errors/types.js';
+export { JsonDeckCompileError, JsonDeckErrorCodes } from './errors/types.js';
+export type { JsonDeckError, JsonDeckWarning, JsonDeckErrorCode } from './errors/types.js';
 
 // Public Types
 export type { GameValue } from './dsl/types.js';

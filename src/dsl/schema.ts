@@ -74,7 +74,7 @@ const themeDefinitionSchema = z.object({
 });
 
 // Condition schema - recursive
-export const conditionSchema: z.ZodType<any> = z.lazy(() =>
+export const conditionSchema: z.ZodTypeAny = z.lazy(() =>
   z.union([
     z.object({ all: z.array(conditionSchema) }),
     z.object({ any: z.array(conditionSchema) }),

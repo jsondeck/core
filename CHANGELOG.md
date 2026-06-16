@@ -20,5 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command execution (move_card, create_card, destroy_card, set_var, modify_var, flip_card, start_timer, emit_event)
 - Timer management with `tick()`
 - Render-neutral ViewModel
-- Structured error and warning system
-- ESM + TypeScript declarations
+- Structured error and warning system, including the exported `JsonDeckErrorCodes`
+  catalog and `JsonDeckErrorCode` union
+- ESM + TypeScript declarations; package metadata hardened for publishing
+  (`engines`, `publishConfig` with provenance, clean `dist` without source maps)

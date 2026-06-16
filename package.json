@@ -4,6 +4,7 @@
   "description": "Headless TypeScript runtime for JSON-defined card games.",
   "type": "module",
   "license": "MIT",
+  "author": "JsonDeck",
   "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +12,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "dist",
@@ -21,7 +30,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
@@ -51,11 +60,14 @@
     "dsl",
     "runtime",
     "json",
-    "typescript"
+    "typescript",
+    "headless",
+    "game-engine",
+    "esm"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsondeck/core.git"
+    "url": "git+https://github.com/jsondeck/core.git"
   },
   "bugs": {
     "url": "https://github.com/jsondeck/core/issues"
