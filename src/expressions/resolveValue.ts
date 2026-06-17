@@ -1,5 +1,6 @@
 import { JsonDeckWarning } from '../errors/types.js';
 import { RUNTIME_LIMITS } from '../limits.js';
+import { deepCloneValue } from '../util/clone.js';
 
 export interface ResolveContext {
   source?: string;
@@ -122,7 +123,10 @@ export function deepResolve(input: unknown, context: ResolveContext): [unknown, 
       if (value.startsWith('$')) {
         const resolved = resolveValue(value, context);
         warnings.push(...resolved.warnings);
-        return resolved.value;
+        // The resolved value may be an object/array that aliases the live event
+        // payload, vars, or timer snapshot. Clone it so the value stored in state
+        // (e.g. timer.bind / emit_event payload) is fully isolated.
+        return deepCloneValue(resolved.value);
       }
       return value;
     }

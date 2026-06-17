@@ -56,9 +56,9 @@ const hudItemDefinitionSchema = z.object({
 const themeDefinitionSchema = z.object({
   card: z
     .object({
-      width: z.number().optional(),
-      height: z.number().optional(),
-      borderRadius: z.number().optional(),
+      width: finiteNumber.optional(),
+      height: finiteNumber.optional(),
+      borderRadius: finiteNumber.optional(),
       background: z.string().optional(),
       textColor: z.string().optional(),
     })
@@ -72,7 +72,7 @@ const themeDefinitionSchema = z.object({
   font: z
     .object({
       family: z.string().optional(),
-      size: z.number().optional(),
+      size: finiteNumber.optional(),
     })
     .optional(),
 });

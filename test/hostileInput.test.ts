@@ -257,4 +257,89 @@ describe('non-finite numbers are rejected everywhere', () => {
     expect(v.ok).toBe(false);
     expect(v.errors.some((e) => e.path === 'vars.d')).toBe(true);
   });
+
+  it('rejects non-finite theme numbers at compile', () => {
+    const base = withVarInitial(0);
+    expect(safeCompileGame({ ...base, theme: { card: { width: Infinity } } }).ok).toBe(false);
+    expect(safeCompileGame({ ...base, theme: { font: { size: NaN } } }).ok).toBe(false);
+  });
+});
+
+describe('expression-resolved objects are isolated (no aliasing into state)', () => {
+  const aliasGame = (then: unknown[]) => ({
+    jsondeck: '0.1',
+    id: 'alias',
+    title: 'Alias',
+    table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+    zones: { z: { type: 'free_space', layout: 'free' } },
+    cardTypes: { u: { title: 'U' } },
+    initialState: { cards: [{ id: 'c1', type: 'u', zone: 'z' }] },
+    rules: [{ id: 'r', on: 'custom.go', then }],
+  });
+
+  it('start_timer.bind from $event.payload does not alias the source (pure dispatch)', () => {
+    const g = compileGame(
+      aliasGame([{ start_timer: { id: 't', duration_ms: 1000, bind: { p: '$event.payload' } } }]),
+    );
+    const payload = { nested: { value: 1 }, arr: [1, 2] };
+    const r = dispatchEvent(g, createInitialState(g), { type: 'custom.go', payload });
+    const tid = Object.keys(r.state.timers)[0];
+    payload.nested.value = 999;
+    payload.arr.push(3);
+    const bound = r.state.timers[tid].bind.p as { nested: { value: number }; arr: number[] };
+    expect(bound.nested.value).toBe(1);
+    expect(bound.arr.length).toBe(2);
+  });
+
+  it('start_timer.bind from $event.payload does not alias internal runtime state', () => {
+    const rt = createRuntime(
+      aliasGame([{ start_timer: { id: 't', duration_ms: 1000, bind: { p: '$event.payload' } } }]),
+    );
+    const payload = { nested: { value: 1 } };
+    rt.dispatch({ type: 'custom.go', payload });
+    payload.nested.value = 777;
+    const tid = Object.keys(rt.getState().timers)[0];
+    const bound = rt.getState().timers[tid].bind.p as { nested: { value: number } };
+    expect(bound.nested.value).toBe(1);
+  });
+
+  it('emit_event.payload from $event.payload does not alias the source', () => {
+    const g = compileGame(
+      aliasGame([{ emit_event: { type: 'custom.echo', payload: { p: '$event.payload' } } }]),
+    );
+    const payload = { nested: { value: 1 } };
+    const r = dispatchEvent(g, createInitialState(g), { type: 'custom.go', payload });
+    payload.nested.value = 555;
+    const echo = r.emittedEvents.find((e) => e.type === 'custom.echo') as {
+      payload?: { p?: { nested?: { value?: number } } };
+    };
+    expect(echo?.payload?.p?.nested?.value).toBe(1);
+  });
+});
+
+describe('validateState — timers', () => {
+  it('flags a timer with a non-finite duration in a restored state', () => {
+    const g = compileGame({
+      jsondeck: '0.1',
+      id: 'tmr',
+      title: 'Tmr',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z: { type: 'free_space', layout: 'free' } },
+      cardTypes: { u: { title: 'U' } },
+      initialState: { cards: [] },
+      rules: [],
+    });
+    const s = deepCloneState(createInitialState(g));
+    s.timers['__jd_timer_1'] = {
+      runtimeId: '__jd_timer_1',
+      seq: 1,
+      id: 't',
+      durationMs: Infinity,
+      remainingMs: Infinity,
+      bind: {},
+    };
+    const v = validateState(g, s);
+    expect(v.ok).toBe(false);
+    expect(v.errors.some((e) => e.path === 'timers.__jd_timer_1.durationMs')).toBe(true);
+  });
 });

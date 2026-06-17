@@ -1,4 +1,5 @@
 import { GameState, CardInstance, ZoneState, TimerInstance } from '../model/types.js';
+import { deepCloneValue } from '../util/clone.js';
 
 export function deepCloneState(state: GameState): GameState {
   return {
@@ -33,21 +34,6 @@ function deepCloneZone(zone: ZoneState): ZoneState {
     ...zone,
     cardIds: [...zone.cardIds],
   };
-}
-
-/** Recursively clones an arbitrary JSON-like value (objects/arrays/primitives). */
-function deepCloneValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(deepCloneValue);
-  }
-  if (value !== null && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value)) {
-      out[key] = deepCloneValue(val);
-    }
-    return out;
-  }
-  return value;
 }
 
 function deepCloneTimer(timer: TimerInstance): TimerInstance {

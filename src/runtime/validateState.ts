@@ -33,6 +33,8 @@ export function validateState(game: CompiledGame, state: GameState): StateValida
     add('state.cards must be an object', 'cards');
   if (typeof state.zones !== 'object' || state.zones === null)
     add('state.zones must be an object', 'zones');
+  if (typeof state.timers !== 'object' || state.timers === null)
+    add('state.timers must be an object', 'timers');
   if (errors.length > 0) return { ok: false, errors };
 
   // Variables: present + correct declared type (and finite for numbers).
@@ -86,6 +88,26 @@ export function validateState(game: CompiledGame, state: GameState): StateValida
         `card "${cardId}" is not listed in its zone "${card.zone}"`,
         `zones.${card.zone}.cardIds`,
       );
+    }
+  }
+
+  // Timers: well-formed and finite, so a restored state cannot smuggle an
+  // Infinity duration past `tick`.
+  for (const [runtimeId, timer] of Object.entries(state.timers)) {
+    if (typeof timer.id !== 'string' || timer.id.length === 0) {
+      add(`timer "${runtimeId}" must have a string id`, `timers.${runtimeId}.id`);
+    }
+    if (!Number.isFinite(timer.durationMs)) {
+      add(`timer "${runtimeId}".durationMs must be finite`, `timers.${runtimeId}.durationMs`);
+    }
+    if (!Number.isFinite(timer.remainingMs)) {
+      add(`timer "${runtimeId}".remainingMs must be finite`, `timers.${runtimeId}.remainingMs`);
+    }
+    if (typeof timer.seq !== 'number' || !Number.isInteger(timer.seq)) {
+      add(`timer "${runtimeId}".seq must be an integer`, `timers.${runtimeId}.seq`);
+    }
+    if (timer.bind === null || typeof timer.bind !== 'object') {
+      add(`timer "${runtimeId}".bind must be an object`, `timers.${runtimeId}.bind`);
     }
   }
 

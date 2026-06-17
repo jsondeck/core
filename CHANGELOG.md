@@ -28,7 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compile, and `set_var`/`modify_var`/`move_card`/`start_timer` reject
   `NaN`/`Infinity`/overflow at runtime
 - Deep, recursive cloning of `timer.bind` (nested objects/arrays) so runtime
-  state snapshots are fully isolated from internal state
+  state snapshots are fully isolated from internal state; `deepResolve` also
+  clones the object/array a `$`-expression resolves to (e.g.
+  `bind: { p: "$event.payload" }`) so the live event payload/vars are never
+  aliased into state
+- `validateState` additionally validates `state.timers` (finite
+  `durationMs`/`remainingMs`, well-formed shape); `theme` numbers are
+  finite-checked at compile
 - Strict event validation (field types and nested shapes, not just presence);
   `dispatchEvent`/`tick` never throw on malformed input
 - `Runtime` returns owned state snapshots (no mutable leak via
