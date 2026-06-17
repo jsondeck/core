@@ -7,7 +7,7 @@ describe('dispatchEvent', () => {
 
   it('should reject invalid event type', () => {
     const state = createInitialState(game);
-    const result = dispatchEvent(game, state, { type: 'bad.event' } as any);
+    const result = dispatchEvent(game, state, { type: 'bad.event' } as never);
 
     expect(result.accepted).toBe(false);
     expect(result.state).toEqual(state);
@@ -19,7 +19,7 @@ describe('dispatchEvent', () => {
     const result = dispatchEvent(game, state, {
       type: 'card.clicked',
       source: undefined,
-    } as any);
+    } as never);
 
     expect(result.accepted).toBe(false);
     expect(result.errors.some((e) => e.code === 'INVALID_EVENT')).toBe(true);
@@ -158,7 +158,7 @@ describe('dispatchEvent', () => {
     });
 
     const state = createInitialState(deepGame);
-    const result = dispatchEvent(deepGame, state, { type: 'custom.emit_test' } as any);
+    const result = dispatchEvent(deepGame, state, { type: 'custom.emit_test' } as never);
 
     expect(result.errors.some((e) => e.code === 'MAX_EVENT_DEPTH_EXCEEDED')).toBe(true);
   });
