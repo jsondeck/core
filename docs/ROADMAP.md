@@ -28,6 +28,21 @@ Status legend: ✅ done · 🟡 partial · ⬜ planned.
 | 11  | Release discipline + security policy for 0.x/1.x                                                       | ✅     | [RELEASES.md](./RELEASES.en.md) criteria, `SECURITY.md`, Changesets, npm provenance                                                                                   |
 | 12  | Version status decision                                                                                | 🟡     | Stays **Beta** until this backlog closes; then 1.0.0                                                                                                                  |
 
+## External integration trial
+
+A standalone consumer (outside this repo) installed the packed tarball and
+exercised the full public surface end to end: compile → `createInitialState` →
+ASCII render of `buildViewModel` → `drag_started`/`dropped_on_card` →
+`tick(5000)` → render again → JSON persist/restore → `validateState` (incl. a
+corrupted-state negative case) → error handling for invalid event/DSL. All green;
+ESM/CJS/TS consumption already covered by the consumer smoke.
+
+Consumer feedback (candidates for 1.0.0, not blockers):
+
+- **Timers are absent from the ViewModel.** A player that wants a countdown/
+  progress UI must read `GameState.timers` directly. Consider surfacing active
+  timers (id, remaining/duration) in `GameViewModel`.
+
 ## Remaining work to reach 1.0.0
 
 - **API freeze (#6, #12).** Lock the public exports and the `GameState` shape;
@@ -40,7 +55,11 @@ Status legend: ✅ done · 🟡 partial · ⬜ planned.
   (see [PRODUCTION.md](./PRODUCTION.md)).
 - **Migration guide (#10).** Author when DSL `0.2` / the first breaking API
   change is introduced.
+- **Timers in ViewModel (consumer feedback).** Evaluate exposing active timers in
+  `GameViewModel` so renderers don't reach into `GameState`.
 - **Coverage gate.** Add a coverage threshold to CI before 1.0.0.
+- **External consumer in CI.** Promote the integration trial into a maintained
+  sample app / CI check.
 
 ## Acceptance for the 1.0.0 label
 
