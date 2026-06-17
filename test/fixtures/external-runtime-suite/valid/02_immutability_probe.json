@@ -1,0 +1,208 @@
+{
+  "jsondeck": "0.1",
+  "id": "immutability-probe",
+  "title": "Immutability probe",
+  "description": "Changes many nested state branches to catch accidental mutation of input state.",
+  "table": {
+    "width": 1000,
+    "height": 700,
+    "background": "#123456",
+    "camera": {
+      "mode": "fixed"
+    }
+  },
+  "variables": {
+    "counter": {
+      "type": "number",
+      "initial": 0
+    },
+    "phase": {
+      "type": "string",
+      "initial": "idle"
+    },
+    "clicked": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "zones": {
+    "hand": {
+      "title": "Hand",
+      "type": "hand",
+      "layout": "row",
+      "rect": {
+        "x": 0,
+        "y": 500,
+        "w": 800,
+        "h": 180
+      }
+    },
+    "table": {
+      "title": "Table",
+      "type": "table",
+      "layout": "free",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1000,
+        "h": 480
+      }
+    },
+    "discard": {
+      "title": "Discard",
+      "type": "discard",
+      "layout": "pile",
+      "rect": {
+        "x": 840,
+        "y": 500,
+        "w": 120,
+        "h": 170
+      }
+    }
+  },
+  "cardTypes": {
+    "actor": {
+      "title": "Actor",
+      "tags": [
+        "actor"
+      ],
+      "props": {
+        "power": 1
+      }
+    },
+    "marker": {
+      "title": "Marker",
+      "tags": [
+        "marker"
+      ],
+      "props": {
+        "value": 1
+      }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "actor_1",
+        "type": "actor",
+        "zone": "hand",
+        "x": 10,
+        "y": 20,
+        "z": 2,
+        "face": "up"
+      },
+      {
+        "id": "marker_1",
+        "type": "marker",
+        "zone": "table",
+        "x": 400,
+        "y": 200,
+        "face": "up"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "click_actor_mutates_many_paths",
+      "on": "card.clicked",
+      "if": {
+        "card.has_tag": [
+          "$source",
+          "actor"
+        ]
+      },
+      "then": [
+        {
+          "move_card": {
+            "card": "$source",
+            "to_zone": "table",
+            "x": "$position.x",
+            "y": "$position.y"
+          }
+        },
+        {
+          "flip_card": {
+            "card": "$source",
+            "face": "down"
+          }
+        },
+        {
+          "set_var": {
+            "name": "phase",
+            "value": "clicked"
+          }
+        },
+        {
+          "set_var": {
+            "name": "clicked",
+            "value": true
+          }
+        },
+        {
+          "modify_var": {
+            "name": "counter",
+            "add": 1
+          }
+        },
+        {
+          "start_timer": {
+            "id": "immutability_timer",
+            "duration_ms": 100,
+            "bind": {
+              "source": "$source",
+              "x": "$position.x"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "finish_immutability_timer",
+      "on": "timer.finished",
+      "if": {
+        "eq": [
+          "$timer.id",
+          "immutability_timer"
+        ]
+      },
+      "then": [
+        {
+          "modify_var": {
+            "name": "counter",
+            "add": 10
+          }
+        }
+      ]
+    }
+  ],
+  "hud": [
+    {
+      "id": "counter",
+      "label": "Counter",
+      "value": "$vars.counter"
+    },
+    {
+      "id": "phase",
+      "label": "Phase",
+      "value": "$vars.phase"
+    },
+    {
+      "id": "clicked",
+      "label": "Clicked",
+      "value": "$vars.clicked"
+    }
+  ],
+  "theme": {
+    "card": {
+      "width": 110,
+      "height": 160,
+      "borderRadius": 6,
+      "background": "#eeeeee",
+      "textColor": "#111111"
+    },
+    "zone": {
+      "border": "#ffffff",
+      "background": "#00000022"
+    }
+  }
+}

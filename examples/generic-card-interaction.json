@@ -1,0 +1,117 @@
+{
+  "jsondeck": "0.1",
+  "id": "generic-card-interaction",
+  "title": "Пример взаимодействия карт",
+  "description": "Нейтральный тестовый сценарий для проверки runtime.",
+  "table": {
+    "width": 1280,
+    "height": 720,
+    "background": "#2f6b3f",
+    "camera": { "mode": "fixed" }
+  },
+  "variables": {
+    "counter": { "type": "number", "initial": 0 },
+    "phase": { "type": "string", "initial": "default_phase" }
+  },
+  "zones": {
+    "main_zone": {
+      "title": "Основная зона",
+      "type": "free_space",
+      "layout": "free",
+      "rect": { "x": 0, "y": 0, "w": 1280, "h": 720 }
+    }
+  },
+  "cardTypes": {
+    "card_type_actor": {
+      "title": "Карта-актор",
+      "description": "Перетаскивается на цель.",
+      "tags": ["actor", "interactive"],
+      "props": { "power": 1 }
+    },
+    "card_type_target": {
+      "title": "Карта-цель",
+      "description": "Принимает актора.",
+      "tags": ["target", "processable"],
+      "props": { "durability": 1 }
+    },
+    "card_type_result": {
+      "title": "Результат",
+      "description": "Создаётся после взаимодействия.",
+      "tags": ["result"],
+      "props": { "value": 1 }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "card_a_1",
+        "type": "card_type_actor",
+        "zone": "main_zone",
+        "x": 220,
+        "y": 320,
+        "face": "up"
+      },
+      {
+        "id": "card_b_1",
+        "type": "card_type_target",
+        "zone": "main_zone",
+        "x": 540,
+        "y": 320,
+        "face": "up"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "start_sample_interaction",
+      "on": "card.dropped_on_card",
+      "if": {
+        "all": [{ "card.has_tag": ["$source", "actor"] }, { "card.has_tag": ["$target", "target"] }]
+      },
+      "then": [
+        {
+          "start_timer": {
+            "id": "sample_timer",
+            "duration_ms": 5000,
+            "bind": {
+              "actorCard": "$source",
+              "targetCard": "$target"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "finish_sample_interaction",
+      "on": "timer.finished",
+      "if": { "eq": ["$timer.id", "sample_timer"] },
+      "then": [
+        { "destroy_card": { "card": "$timer.bind.targetCard" } },
+        {
+          "create_card": {
+            "type": "card_type_result",
+            "zone": "main_zone",
+            "count": 3,
+            "near": "$timer.bind.actorCard"
+          }
+        },
+        { "modify_var": { "name": "counter", "add": 3 } }
+      ]
+    }
+  ],
+  "hud": [
+    { "id": "counter", "label": "Счётчик", "value": "$vars.counter" },
+    { "id": "phase", "label": "Фаза", "value": "$vars.phase" }
+  ],
+  "theme": {
+    "card": {
+      "width": 120,
+      "height": 170,
+      "borderRadius": 12,
+      "background": "#f4ead7",
+      "textColor": "#1b1b1b"
+    },
+    "zone": { "border": "#ffffff55", "background": "#00000022" },
+    "font": { "family": "system", "size": 16 }
+  }
+}

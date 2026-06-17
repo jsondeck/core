@@ -1,0 +1,73 @@
+{
+  "jsondeck": "0.1",
+  "id": "expression-references-in-commands",
+  "title": "Expression references in command literals",
+  "description": "move_card.to_zone, create_card.type and create_card.zone given as $-expressions must compile and resolve at runtime.",
+  "table": {
+    "width": 1280,
+    "height": 720,
+    "background": "#2f6b3f",
+    "camera": { "mode": "fixed" }
+  },
+  "variables": {
+    "dest_zone": { "type": "string", "initial": "target_zone" },
+    "spawn_type": { "type": "string", "initial": "spawned" }
+  },
+  "zones": {
+    "source_zone": {
+      "title": "Source",
+      "type": "free_space",
+      "layout": "free",
+      "rect": { "x": 0, "y": 0, "w": 600, "h": 720 }
+    },
+    "target_zone": {
+      "title": "Target",
+      "type": "table",
+      "layout": "free",
+      "rect": { "x": 600, "y": 0, "w": 680, "h": 720 }
+    }
+  },
+  "cardTypes": {
+    "mover": {
+      "title": "Mover",
+      "tags": ["mover"],
+      "props": { "power": 1 }
+    },
+    "spawned": {
+      "title": "Spawned",
+      "tags": ["spawned"],
+      "props": { "value": 1 }
+    }
+  },
+  "initialState": {
+    "cards": [{ "id": "mover_1", "type": "mover", "zone": "source_zone", "x": 10, "y": 20, "face": "up" }]
+  },
+  "rules": [
+    {
+      "id": "resolve_expression_command_refs",
+      "on": "game.started",
+      "then": [
+        {
+          "move_card": {
+            "card": "mover_1",
+            "to_zone": "$vars.dest_zone",
+            "x": 50,
+            "y": 60
+          }
+        },
+        {
+          "create_card": {
+            "type": "$vars.spawn_type",
+            "zone": "$vars.dest_zone",
+            "count": 2
+          }
+        }
+      ]
+    }
+  ],
+  "hud": [{ "id": "dest", "label": "Destination", "value": "$vars.dest_zone" }],
+  "theme": {
+    "card": { "width": 120, "height": 170, "borderRadius": 12, "background": "#f4ead7", "textColor": "#1b1b1b" },
+    "zone": { "border": "#ffffff55", "background": "#00000022" }
+  }
+}

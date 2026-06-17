@@ -1,0 +1,222 @@
+{
+  "jsondeck": "0.1",
+  "id": "timer-order-and-deferred",
+  "title": "Timer order and deferred timer",
+  "table": {
+    "width": 1280,
+    "height": 720,
+    "background": "#2f6b3f",
+    "camera": {
+      "mode": "fixed"
+    }
+  },
+  "variables": {
+    "marker": {
+      "type": "number",
+      "initial": 0
+    },
+    "final": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "zones": {
+    "main_zone": {
+      "title": "Main",
+      "type": "free_space",
+      "layout": "free",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 720
+      }
+    }
+  },
+  "cardTypes": {
+    "unit": {
+      "title": "Unit",
+      "tags": [
+        "unit"
+      ],
+      "props": {
+        "power": 1
+      }
+    },
+    "marker": {
+      "title": "Marker",
+      "tags": [
+        "marker"
+      ],
+      "props": {
+        "value": 1
+      }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "card_1",
+        "type": "unit",
+        "zone": "main_zone",
+        "x": 100,
+        "y": 100,
+        "face": "up"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "start_two_timers",
+      "on": "game.started",
+      "then": [
+        {
+          "start_timer": {
+            "id": "first",
+            "duration_ms": 200,
+            "bind": {
+              "label": "first"
+            }
+          }
+        },
+        {
+          "start_timer": {
+            "id": "second",
+            "duration_ms": 100,
+            "bind": {
+              "label": "second"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "handle_first_timer_seq_1",
+      "on": "timer.finished",
+      "if": {
+        "all": [
+          {
+            "eq": [
+              "$timer.id",
+              "first"
+            ]
+          },
+          {
+            "eq": [
+              "$vars.marker",
+              0
+            ]
+          }
+        ]
+      },
+      "then": [
+        {
+          "set_var": {
+            "name": "marker",
+            "value": 1
+          }
+        },
+        {
+          "start_timer": {
+            "id": "deferred",
+            "duration_ms": 1,
+            "bind": {
+              "createdBy": "$timer.id"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "handle_second_timer_seq_2",
+      "on": "timer.finished",
+      "if": {
+        "all": [
+          {
+            "eq": [
+              "$timer.id",
+              "second"
+            ]
+          },
+          {
+            "eq": [
+              "$vars.marker",
+              1
+            ]
+          }
+        ]
+      },
+      "then": [
+        {
+          "set_var": {
+            "name": "marker",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "handle_deferred_next_tick",
+      "on": "timer.finished",
+      "if": {
+        "all": [
+          {
+            "eq": [
+              "$timer.id",
+              "deferred"
+            ]
+          },
+          {
+            "eq": [
+              "$vars.marker",
+              2
+            ]
+          }
+        ]
+      },
+      "then": [
+        {
+          "set_var": {
+            "name": "marker",
+            "value": 3
+          }
+        },
+        {
+          "set_var": {
+            "name": "final",
+            "value": true
+          }
+        }
+      ]
+    }
+  ],
+  "hud": [
+    {
+      "id": "marker",
+      "label": "Marker",
+      "value": "$vars.marker"
+    },
+    {
+      "id": "final",
+      "label": "Final",
+      "value": "$vars.final"
+    }
+  ],
+  "theme": {
+    "card": {
+      "width": 120,
+      "height": 170,
+      "borderRadius": 12,
+      "background": "#f4ead7",
+      "textColor": "#1b1b1b"
+    },
+    "zone": {
+      "border": "#ffffff55",
+      "background": "#00000022"
+    },
+    "font": {
+      "family": "system",
+      "size": 16
+    }
+  }
+}

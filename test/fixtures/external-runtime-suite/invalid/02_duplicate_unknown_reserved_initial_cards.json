@@ -1,0 +1,95 @@
+{
+  "jsondeck": "0.1",
+  "id": "invalid-initial-cards",
+  "title": "Invalid initial cards",
+  "table": {
+    "width": 1280,
+    "height": 720,
+    "background": "#2f6b3f",
+    "camera": {
+      "mode": "fixed"
+    }
+  },
+  "variables": {},
+  "zones": {
+    "main_zone": {
+      "title": "Main",
+      "type": "free_space",
+      "layout": "free",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 720
+      }
+    }
+  },
+  "cardTypes": {
+    "unit": {
+      "title": "Unit",
+      "tags": [
+        "unit"
+      ],
+      "props": {
+        "power": 1
+      }
+    },
+    "marker": {
+      "title": "Marker",
+      "tags": [
+        "marker"
+      ],
+      "props": {
+        "value": 1
+      }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "dup",
+        "type": "unit",
+        "zone": "main_zone"
+      },
+      {
+        "id": "dup",
+        "type": "unit",
+        "zone": "main_zone"
+      },
+      {
+        "id": "missing_type_card",
+        "type": "missing_type",
+        "zone": "main_zone"
+      },
+      {
+        "id": "missing_zone_card",
+        "type": "unit",
+        "zone": "missing_zone"
+      },
+      {
+        "id": "__jd_reserved",
+        "type": "unit",
+        "zone": "main_zone"
+      }
+    ]
+  },
+  "rules": [],
+  "hud": [],
+  "theme": {
+    "card": {
+      "width": 120,
+      "height": 170,
+      "borderRadius": 12,
+      "background": "#f4ead7",
+      "textColor": "#1b1b1b"
+    },
+    "zone": {
+      "border": "#ffffff55",
+      "background": "#00000022"
+    },
+    "font": {
+      "family": "system",
+      "size": 16
+    }
+  }
+}

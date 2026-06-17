@@ -1,0 +1,109 @@
+{
+  "jsondeck": "0.1",
+  "id": "runtime-condition-warnings",
+  "title": "Runtime condition warnings should not execute rule",
+  "table": {
+    "width": 1280,
+    "height": 720,
+    "background": "#2f6b3f",
+    "camera": {
+      "mode": "fixed"
+    }
+  },
+  "variables": {
+    "flag": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "zones": {
+    "main_zone": {
+      "title": "Main",
+      "type": "free_space",
+      "layout": "free",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 720
+      }
+    }
+  },
+  "cardTypes": {
+    "unit": {
+      "title": "Unit",
+      "tags": [
+        "unit"
+      ],
+      "props": {
+        "power": 1
+      }
+    },
+    "marker": {
+      "title": "Marker",
+      "tags": [
+        "marker"
+      ],
+      "props": {
+        "value": 1
+      }
+    }
+  },
+  "initialState": {
+    "cards": [
+      {
+        "id": "card_1",
+        "type": "unit",
+        "zone": "main_zone",
+        "x": 100,
+        "y": 100,
+        "face": "up"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "condition_fails_with_warnings",
+      "on": "card.clicked",
+      "if": {
+        "all": [
+          {
+            "card.is": [
+              "missing_card",
+              "unit"
+            ]
+          },
+          {
+            "zone.is_empty": "missing_zone"
+          }
+        ]
+      },
+      "then": [
+        {
+          "set_var": {
+            "name": "flag",
+            "value": true
+          }
+        }
+      ]
+    }
+  ],
+  "hud": [],
+  "theme": {
+    "card": {
+      "width": 120,
+      "height": 170,
+      "borderRadius": 12,
+      "background": "#f4ead7",
+      "textColor": "#1b1b1b"
+    },
+    "zone": {
+      "border": "#ffffff55",
+      "background": "#00000022"
+    },
+    "font": {
+      "family": "system",
+      "size": 16
+    }
+  }
+}
