@@ -1,4 +1,4 @@
-import { GameEvent } from '../model/types.js';
+import { GameEvent, GameState } from '../model/types.js';
 import { JsonDeckError } from '../errors/types.js';
 
 const BUILT_IN_EVENTS: ReadonlyArray<string> = [
@@ -127,6 +127,58 @@ export function validateEvent(raw: unknown): JsonDeckError | null {
       if (event.payload !== undefined && !isRecord(event.payload)) {
         return invalid(`Custom event "payload" must be an object when present`);
       }
+      return null;
+  }
+}
+
+function unknownCard(field: string, id: string): JsonDeckError {
+  return {
+    code: 'UNKNOWN_CARD',
+    message: `Event references unknown card in "${field}": ${id}`,
+    path: field,
+    details: { field, id },
+  };
+}
+
+function unknownZone(field: string, id: string): JsonDeckError {
+  return {
+    code: 'UNKNOWN_ZONE',
+    message: `Event references unknown zone in "${field}": ${id}`,
+    path: field,
+    details: { field, id },
+  };
+}
+
+/**
+ * Validates event references against the current state after structural event
+ * validation has succeeded. This prevents stale UI/server events from applying
+ * rules for cards or zones that do not exist in the authoritative state.
+ */
+export function validateEventReferences(event: GameEvent, state: GameState): JsonDeckError | null {
+  switch (event.type) {
+    case 'card.clicked':
+    case 'card.drag_started':
+      return state.cards[event.source] ? null : unknownCard('source', event.source);
+
+    case 'card.dropped_on_card':
+      if (!state.cards[event.source]) return unknownCard('source', event.source);
+      if (!state.cards[event.target]) return unknownCard('target', event.target);
+      return null;
+
+    case 'card.dropped_on_zone':
+      if (!state.cards[event.source]) return unknownCard('source', event.source);
+      if (!state.zones[event.targetZone]) return unknownZone('targetZone', event.targetZone);
+      return null;
+
+    case 'card.dropped_on_empty':
+      if (!state.cards[event.source]) return unknownCard('source', event.source);
+      if (event.zone !== undefined && !state.zones[event.zone])
+        return unknownZone('zone', event.zone);
+      return null;
+
+    case 'game.started':
+    case 'timer.finished':
+    default:
       return null;
   }
 }

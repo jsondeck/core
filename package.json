@@ -1,6 +1,6 @@
 {
   "name": "@jsondeck/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Headless TypeScript runtime for JSON-defined card games.",
   "type": "module",
   "license": "MIT",

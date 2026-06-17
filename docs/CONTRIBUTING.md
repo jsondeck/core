@@ -184,9 +184,14 @@ When a changeset is committed to `main`:
 For manual release (if needed):
 
 ```bash
-npm run build
-npm publish --provenance
+npm run check
+npm audit --omit=dev
+npm pack --dry-run
 ```
+
+Prefer fixing and rerunning the GitHub release workflow. Local token publishes
+are emergency-only and must be followed by token rotation and a manual GitHub
+Release note if provenance was unavailable.
 
 ## CI/CD
 
@@ -198,21 +203,24 @@ GitHub Actions runs on every PR and push to `main`:
 2. **Type check** — TypeScript strict mode
 3. **Tests** — Vitest suite
 4. **Build** — tsc to dist/
-5. **Pack** — Dry-run npm pack
+5. **Audit** — `npm audit --omit=dev`
+6. **Pack** — Dry-run npm pack
 
 All checks must pass before merging.
 
 ### Release Workflow
 
-Releases are automatic via Changesets. The workflow:
+Releases are automatic via Changesets and npm Trusted Publishing. The workflow:
 
 1. Detects changesets on `main`
 2. Creates version bump PR
-3. On merge, publishes to npm with provenance
+3. On merge, publishes to npm with OIDC/provenance
 
-**Required secrets** (ask repository owner):
+**Required npm setup** (ask repository owner):
 
-- `NPM_TOKEN` — npm publish token
+- npmjs.com Trusted Publisher for `@jsondeck/core`
+- GitHub Actions publisher: `jsondeck/core`, workflow `release.yml`
+- Allowed action: `npm publish`
 
 ## Code Style
 

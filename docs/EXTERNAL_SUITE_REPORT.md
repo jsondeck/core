@@ -82,8 +82,8 @@ Covered by `test/externalRuntimeFixtures.test.ts` (V06, R06, R07) and mirrored i
 
 - **Fully compliant: yes — and this claim is gated.** It may read "yes" only
   while BOTH of the following hold (both currently do):
-  - `npm run check` is green (format · lint 0 errors · typecheck src+test ·
-    101 tests · build), and
+  - `npm run check` is green (format · lint 0 warnings · typecheck src+test ·
+    full test suite · build), and
   - all 19 fixtures (16 upstream + 3 edge: V06, R06, R07) pass.
   If either regresses, this line must be set back to "no" with the failing
   case(s) listed in the table above.

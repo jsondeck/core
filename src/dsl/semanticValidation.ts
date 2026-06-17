@@ -1,4 +1,4 @@
-import { GameDefinition, Command } from './types.js';
+import { GameDefinition, Command, Condition } from './types.js';
 import { JsonDeckError, JsonDeckWarning } from '../errors/types.js';
 
 export function validateGameSemantically(game: GameDefinition): {
@@ -106,6 +106,9 @@ export function validateGameSemantically(game: GameDefinition): {
   // Validate commands
   for (let ruleIdx = 0; ruleIdx < game.rules.length; ruleIdx++) {
     const rule = game.rules[ruleIdx];
+    if (rule.if) {
+      errors.push(...validateCondition(rule.if, `rules[${ruleIdx}].if`));
+    }
     for (let cmdIdx = 0; cmdIdx < rule.then.length; cmdIdx++) {
       const cmd = rule.then[cmdIdx];
 
@@ -290,4 +293,76 @@ function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | nu
   }
 
   return null;
+}
+
+const TWO_OPERAND_CONDITIONS = [
+  'eq',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'card.is',
+  'card.has_tag',
+  'card.in_zone',
+] as const;
+
+function conditionArityError(path: string, message: string): JsonDeckError {
+  return {
+    code: 'SEMANTIC_VALIDATION_ERROR',
+    message,
+    path,
+  };
+}
+
+function validateCondition(condition: Condition, path: string): JsonDeckError[] {
+  const errors: JsonDeckError[] = [];
+
+  if ('all' in condition) {
+    for (let idx = 0; idx < condition.all.length; idx++) {
+      errors.push(...validateCondition(condition.all[idx], `${path}.all[${idx}]`));
+    }
+    return errors;
+  }
+
+  if ('any' in condition) {
+    for (let idx = 0; idx < condition.any.length; idx++) {
+      errors.push(...validateCondition(condition.any[idx], `${path}.any[${idx}]`));
+    }
+    return errors;
+  }
+
+  if ('not' in condition) {
+    return validateCondition(condition.not, `${path}.not`);
+  }
+
+  for (const key of TWO_OPERAND_CONDITIONS) {
+    if (key in condition) {
+      const operands = (condition as Record<string, unknown>)[key];
+      if (!Array.isArray(operands) || operands.length !== 2) {
+        errors.push(
+          conditionArityError(
+            `${path}.${key}`,
+            `Condition "${key}" must have exactly 2 operands, got ${
+              Array.isArray(operands) ? operands.length : typeof operands
+            }`,
+          ),
+        );
+      }
+      return errors;
+    }
+  }
+
+  if ('zone.is_empty' in condition) {
+    if (Array.isArray(condition['zone.is_empty'])) {
+      errors.push(
+        conditionArityError(
+          `${path}.zone.is_empty`,
+          'Condition "zone.is_empty" expects a single expression, not an operand array',
+        ),
+      );
+    }
+    return errors;
+  }
+
+  return errors;
 }

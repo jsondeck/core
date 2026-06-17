@@ -14,13 +14,13 @@ MAJOR.MINOR.PATCH
 - **MINOR** — Новые обратносовместимые возможности
 - **PATCH** — Исправления ошибок
 
-Текущая версия: **0.1.0** (beta)
+Текущая версия: **0.1.1** (beta)
 
 ## Критерии релиза
 
 Версия выпускается только если на `main` выполнено всё:
 
-1. `npm run check` зелёный (format, lint без ошибок, typecheck по `src` и `test`,
+1. `npm run check` зелёный (format, lint без warnings, typecheck по `src` и `test`,
    тесты, build).
 2. Внешний fixture-набор проходит (`test/externalRuntimeFixtures.test.ts`, 19/19).
 3. `npm pack --dry-run` даёт чистый тарбол (без sourcemap; только `dist`,
@@ -65,13 +65,24 @@ MAJOR.MINOR.PATCH
 2. Тип? (patch, minor, major)
 3. Описание (будет в CHANGELOG)
 
-## Необходимые secrets
+## Данные для публикации
 
-Владелец репозитория должен добавить:
+Штатный release использует npm Trusted Publishing через GitHub Actions OIDC, а
+не долгоживущий publish-токен.
 
-- **NPM_TOKEN** — токен для публикации в npm
+Владелец должен настроить пакет на npmjs.com:
 
-Settings → Secrets and variables → Actions.
+- Package: `@jsondeck/core`
+- Trusted publisher: GitHub Actions
+- Organization/repository: `jsondeck` / `core`
+- Workflow filename: `release.yml`
+- Allowed action: `npm publish`
+
+Workflow должен сохранять `id-token: write`, использовать Node `>=22.14.0` и npm
+CLI `>=11.5.1`. В репозитории используется Node 24 и npm 11.
+
+`NPM_TOKEN` допустим только как аварийный fallback. Если токен применялся для
+локальной/token-публикации, его нужно сразу ротировать.
 
 ## Статус
 
