@@ -126,6 +126,41 @@ describe('dispatchEvent', () => {
     expect(result.matchedRules).toContain('child');
   });
 
+  it('should let later matching rules observe vars committed by earlier rules', () => {
+    const chainedRulesGame = compileGame({
+      jsondeck: '0.1',
+      id: 'same-event-chain',
+      title: 'Same Event Chain',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z1: { type: 'free_space', layout: 'free' } },
+      cardTypes: {},
+      initialState: { cards: [] },
+      variables: { score: { type: 'number', initial: 0 } },
+      rules: [
+        { id: 'r1', on: 'game.started', then: [{ modify_var: { name: 'score', add: 1 } }] },
+        {
+          id: 'r2',
+          on: 'game.started',
+          if: { eq: ['$vars.score', 1] },
+          then: [{ modify_var: { name: 'score', add: 10 } }],
+        },
+        {
+          id: 'r3',
+          on: 'game.started',
+          then: [{ set_var: { name: 'score', value: '$vars.score' } }],
+        },
+      ],
+    });
+
+    const result = dispatchEvent(chainedRulesGame, createInitialState(chainedRulesGame), {
+      type: 'game.started',
+    });
+
+    expect(result.accepted).toBe(true);
+    expect(result.executedRules).toEqual(['r1', 'r2', 'r3']);
+    expect(result.state.vars.score).toBe(11);
+  });
+
   it('should handle non-existent cards gracefully', () => {
     const state = createInitialState(game);
     const result = dispatchEvent(game, state, {
@@ -136,6 +171,97 @@ describe('dispatchEvent', () => {
     });
 
     expect(result.accepted).toBe(false);
+    expect(result.errors.some((e) => e.code === 'UNKNOWN_CARD')).toBe(true);
+  });
+
+  it('should reject card events with unknown card or zone references before rules run', () => {
+    const eventValidationGame = compileGame({
+      jsondeck: '0.1',
+      id: 'event-validation',
+      title: 'Event Validation',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z1: { type: 'free_space', layout: 'free' } },
+      cardTypes: { ct: { title: 'Card' } },
+      initialState: { cards: [{ id: 'c1', type: 'ct', zone: 'z1' }] },
+      variables: { score: { type: 'number', initial: 0 } },
+      rules: [
+        {
+          id: 'should_not_run',
+          on: 'card.clicked',
+          then: [{ modify_var: { name: 'score', add: 1 } }],
+        },
+        {
+          id: 'card_drop_should_not_run',
+          on: 'card.dropped_on_card',
+          then: [{ modify_var: { name: 'score', add: 1 } }],
+        },
+        {
+          id: 'drop_should_not_run',
+          on: 'card.dropped_on_zone',
+          then: [{ modify_var: { name: 'score', add: 1 } }],
+        },
+        {
+          id: 'empty_drop_should_not_run',
+          on: 'card.dropped_on_empty',
+          then: [{ modify_var: { name: 'score', add: 1 } }],
+        },
+      ],
+    });
+
+    const missingCard = dispatchEvent(
+      eventValidationGame,
+      createInitialState(eventValidationGame),
+      {
+        type: 'card.clicked',
+        source: 'missing',
+      },
+    );
+    expect(missingCard.accepted).toBe(false);
+    expect(missingCard.errors.some((e) => e.code === 'UNKNOWN_CARD')).toBe(true);
+    expect(missingCard.state.vars.score).toBe(0);
+
+    const missingTargetCard = dispatchEvent(
+      eventValidationGame,
+      createInitialState(eventValidationGame),
+      {
+        type: 'card.dropped_on_card',
+        source: 'c1',
+        target: 'missing',
+        position: { x: 1, y: 2 },
+      },
+    );
+    expect(missingTargetCard.accepted).toBe(false);
+    expect(missingTargetCard.errors.some((e) => e.code === 'UNKNOWN_CARD')).toBe(true);
+    expect(missingTargetCard.errors.some((e) => e.path === 'target')).toBe(true);
+    expect(missingTargetCard.state.vars.score).toBe(0);
+
+    const missingTargetZone = dispatchEvent(
+      eventValidationGame,
+      createInitialState(eventValidationGame),
+      {
+        type: 'card.dropped_on_zone',
+        source: 'c1',
+        targetZone: 'nope',
+        position: { x: 1, y: 2 },
+      },
+    );
+    expect(missingTargetZone.accepted).toBe(false);
+    expect(missingTargetZone.errors.map((e) => e.code)).toContain('UNKNOWN_ZONE');
+    expect(missingTargetZone.state.vars.score).toBe(0);
+
+    const missingEmptyZone = dispatchEvent(
+      eventValidationGame,
+      createInitialState(eventValidationGame),
+      {
+        type: 'card.dropped_on_empty',
+        source: 'c1',
+        zone: 'nope',
+        position: { x: 1, y: 2 },
+      },
+    );
+    expect(missingEmptyZone.accepted).toBe(false);
+    expect(missingEmptyZone.errors.map((e) => e.code)).toContain('UNKNOWN_ZONE');
+    expect(missingEmptyZone.state.vars.score).toBe(0);
   });
 
   it('should respect maxEventDepth to prevent infinite recursion', () => {

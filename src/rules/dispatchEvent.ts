@@ -5,7 +5,7 @@ import { JsonDeckError, JsonDeckWarning } from '../errors/types.js';
 import { evaluateCondition } from './evaluateCondition.js';
 import { executeCommand } from '../commands/executeCommand.js';
 import { createEventContext } from '../events/createEventContext.js';
-import { validateEvent } from './validateEvent.js';
+import { validateEvent, validateEventReferences } from './validateEvent.js';
 import { deepCloneState } from './deepClone.js';
 import { RUNTIME_LIMITS } from '../limits.js';
 
@@ -49,8 +49,12 @@ export function dispatchEventInternal(
     return rejected(state, eventError, warnings);
   }
 
-  const eventContext = createEventContext(event, state);
-  if (!eventContext) {
+  const eventReferenceError = validateEventReferences(event, state);
+  if (eventReferenceError) {
+    return rejected(state, eventReferenceError, warnings);
+  }
+
+  if (!createEventContext(event, state)) {
     return rejected(
       state,
       { code: 'INVALID_EVENT', message: `Cannot create context for event: ${event.type}` },
@@ -62,6 +66,14 @@ export function dispatchEventInternal(
   matchedRules.push(...matchingRules.map((r) => r.id));
 
   for (const rule of matchingRules) {
+    const eventContext = createEventContext(event, state);
+    if (!eventContext) {
+      return rejected(
+        state,
+        { code: 'INVALID_EVENT', message: `Cannot create context for event: ${event.type}` },
+        warnings,
+      );
+    }
     const ruleContext = { ...eventContext };
 
     if (rule.if) {

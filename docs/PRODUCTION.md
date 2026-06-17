@@ -6,7 +6,7 @@ the network, a multiplayer peer).
 
 ## Integration checklist
 
-- [ ] **Pin an exact version** (`"@jsondeck/core": "0.1.0"`); upgrade
+- [ ] **Pin an exact version** (`"@jsondeck/core": "0.1.1"`); upgrade
       deliberately and read the CHANGELOG (the API/DSL may change between `0.x`
       minors — see [COMPATIBILITY.md](./COMPATIBILITY.md)).
 - [ ] **Compile with `safeCompileGame`** for untrusted DSL and handle

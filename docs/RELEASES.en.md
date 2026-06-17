@@ -14,13 +14,13 @@ MAJOR.MINOR.PATCH
 - **MINOR** — New backward-compatible features
 - **PATCH** — Bug fixes
 
-Current version: **0.1.0** (beta)
+Current version: **0.1.1** (beta)
 
 ## Release Criteria
 
 A version is only cut when **all** of the following hold on `main`:
 
-1. `npm run check` is green: `format:check`, `lint` (0 errors), `typecheck`
+1. `npm run check` is green: `format:check`, `lint` (0 warnings), `typecheck`
    (covers `src` **and** `test`), the full test suite, and `build`.
 2. The external fixture suite passes (`test/externalRuntimeFixtures.test.ts`,
    currently 19/19).
@@ -99,24 +99,41 @@ Fix timer remainingMs calculation in tick()
 - Documentation updates (except new docs)
 - CI/tooling changes
 
-## Secrets Required
+## Publishing Credentials
 
-Repository owner must configure:
+The normal release path uses npm Trusted Publishing through GitHub Actions OIDC,
+not a long-lived publish token.
 
-- **NPM_TOKEN** — npm publish token with write access to @jsondeck scope
+Repository owner must configure the package on npmjs.com:
 
-Add via GitHub repo settings → Secrets and variables → Actions.
+- Package: `@jsondeck/core`
+- Trusted publisher: GitHub Actions
+- Organization/repository: `jsondeck` / `core`
+- Workflow filename: `release.yml`
+- Allowed action: `npm publish`
+
+The GitHub workflow must keep `id-token: write`, use Node `>=22.14.0`, and use
+npm CLI `>=11.5.1`. The checked-in workflow uses Node 24 and installs npm 11.
+
+Only keep an `NPM_TOKEN` as an explicit emergency fallback. If it is ever used
+for a local/token publish, rotate it immediately after the release.
 
 ## Manual Release
 
-If automated process fails:
+If automated publishing fails, fix the GitHub workflow or npm Trusted Publisher
+configuration and rerun from CI. A local manual publish is an emergency-only
+escape hatch and does **not** satisfy the provenance/OIDC release gate.
+
+Before any emergency publish:
 
 ```bash
-npm run build
-npm publish --provenance --access public
+npm run check
+npm audit --omit=dev
+npm pack --dry-run
 ```
 
-Then manually create GitHub Release with tag v0.1.0.
+Then manually create the matching GitHub Release and document whether provenance
+was unavailable.
 
 ## Stability
 
@@ -139,6 +156,14 @@ Maintained in [CHANGELOG.md](../CHANGELOG.md) following [Keep a Changelog](https
 Format:
 
 ```markdown
+## [0.1.1] - 2026-06-17
+
+### Fixed
+
+- Same-event rules observe freshly committed `$vars`
+- State-aware card/zone event reference validation
+- Condition arity validation
+
 ## [0.1.0] - 2024-06-16
 
 ### Added

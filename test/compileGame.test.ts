@@ -104,6 +104,65 @@ describe('compileGame', () => {
 
     expect(() => compileGame(invalid)).toThrow(JsonDeckCompileError);
   });
+
+  it('should reject comparison/card conditions with the wrong number of operands', () => {
+    const invalid = {
+      jsondeck: '0.1',
+      id: 'bad-condition-arity',
+      title: 'Bad Condition Arity',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z1: { type: 'free_space', layout: 'free' } },
+      cardTypes: { ct: { title: 'Card' } },
+      initialState: { cards: [{ id: 'c1', type: 'ct', zone: 'z1' }] },
+      rules: [
+        {
+          id: 'r1',
+          on: 'game.started',
+          if: { eq: [1] },
+          then: [],
+        },
+        {
+          id: 'r2',
+          on: 'game.started',
+          if: { 'card.in_zone': ['c1', 'z1', 'extra'] },
+          then: [],
+        },
+      ],
+    };
+
+    const result = safeCompileGame(invalid);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.filter((e) => e.code === 'SEMANTIC_VALIDATION_ERROR').length).toBe(2);
+      expect(result.errors.every((e) => e.path?.includes('.if'))).toBe(true);
+    }
+  });
+
+  it('should reject zone.is_empty array syntax', () => {
+    const invalid = {
+      jsondeck: '0.1',
+      id: 'bad-zone-condition-arity',
+      title: 'Bad Zone Condition Arity',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z1: { type: 'free_space', layout: 'free' } },
+      cardTypes: {},
+      initialState: { cards: [] },
+      rules: [
+        {
+          id: 'r1',
+          on: 'game.started',
+          if: { 'zone.is_empty': ['z1', 'z2'] },
+          then: [],
+        },
+      ],
+    };
+
+    const result = safeCompileGame(invalid);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => e.message.includes('zone.is_empty'))).toBe(true);
+    }
+  });
 });
 
 describe('safeCompileGame', () => {

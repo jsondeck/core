@@ -200,13 +200,13 @@ Please see [CONTRIBUTING.md](https://github.com/jsondeck/core/blob/main/docs/CON
 
 ## Status
 
-Current version: **0.1.0 — Beta.** Suitable for controlled production
+Current version: **0.1.1 — Beta.** Suitable for controlled production
 integrations and early adopters, not yet a stabilized GA SDK. The DSL v0.1 and
 the runtime API may receive backward-incompatible refinements before `1.0.0`.
 
 Recommendations for adopters:
 
-- **Pin an exact version** (`"@jsondeck/core": "0.1.0"`) and upgrade
+- **Pin an exact version** (`"@jsondeck/core": "0.1.1"`) and upgrade
   deliberately; review the [CHANGELOG](https://github.com/jsondeck/core/blob/main/CHANGELOG.md)
   and [release criteria](https://github.com/jsondeck/core/blob/main/docs/RELEASES.en.md#release-criteria).
 - Treat the `GameState` returned by `getState()` / `dispatch()` / `tick()` as an
