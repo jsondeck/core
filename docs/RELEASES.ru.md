@@ -16,6 +16,24 @@ MAJOR.MINOR.PATCH
 
 Текущая версия: **0.1.0** (beta)
 
+## Критерии релиза
+
+Версия выпускается только если на `main` выполнено всё:
+
+1. `npm run check` зелёный (format, lint без ошибок, typecheck по `src` и `test`,
+   тесты, build).
+2. Внешний fixture-набор проходит (`test/externalRuntimeFixtures.test.ts`, 19/19).
+3. `npm pack --dry-run` даёт чистый тарбол (без sourcemap; только `dist`,
+   `examples`, README, LICENSE, CHANGELOG).
+4. Проходит browser-bundle smoke (сборка для `platform=browser` без node-only API).
+5. `npm audit --omit=dev` — 0 уязвимостей в runtime-зависимостях.
+6. На каждое пользовательское изменение есть Changeset, CHANGELOG обновлён.
+
+**Контракт стабильности `0.x`:** до `1.0.0` DSL и публичный API могут меняться
+между **minor**-версиями (отражается в CHANGELOG); patch не меняет DSL/API.
+Потребителям рекомендуется фиксировать точную версию. Полные критерии — в
+[английской версии](./RELEASES.en.md#release-criteria).
+
 ## Процесс релиза
 
 Автоматизирован через [Changesets](https://github.com/changesets/changesets).

@@ -13,7 +13,9 @@ export function buildViewModel(game: CompiledGame, state: GameState): GameViewMo
   const cardWidth = cardTheme.width ?? DEFAULT_CARD_WIDTH;
   const cardHeight = cardTheme.height ?? DEFAULT_CARD_HEIGHT;
 
-  // Build zones
+  // Build zones. `state.zones[zoneId]` may be missing if a caller supplied a
+  // hand-built / migrated / mutated state, so fall back to an empty card list
+  // rather than throwing.
   const zones: ZoneViewModel[] = [];
   for (const [zoneId, zoneDef] of Object.entries(game.zones)) {
     const zoneState = state.zones[zoneId];
@@ -28,7 +30,7 @@ export function buildViewModel(game: CompiledGame, state: GameState): GameViewMo
       y: rect.y,
       w: rect.w,
       h: rect.h,
-      cardIds: [...zoneState.cardIds],
+      cardIds: zoneState ? [...zoneState.cardIds] : [],
       style: {
         border: zoneTheme.border,
         background: zoneTheme.background,
@@ -42,6 +44,7 @@ export function buildViewModel(game: CompiledGame, state: GameState): GameViewMo
   const cards: CardViewModel[] = [];
   for (const [zoneId, zoneDef] of Object.entries(game.zones)) {
     const zoneState = state.zones[zoneId];
+    if (!zoneState) continue;
     const rect = zoneDef.rect || { x: 0, y: 0, w: 1000, h: 1000 };
     const layout = zoneDef.layout;
 

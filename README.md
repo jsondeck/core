@@ -98,20 +98,21 @@ console.log(viewModel);
 
 ## Documentation
 
-- **[English](docs/README.en.md)** — Full API reference and concepts
-- **[Русский](docs/README.ru.md)** — Полное описание на русском
+- **[English](https://github.com/jsondeck/core/blob/main/docs/README.en.md)** — Full API reference and concepts
+- **[Русский](https://github.com/jsondeck/core/blob/main/docs/README.ru.md)** — Полное описание на русском
 
 ### Core Concepts
 
-- **DSL** — [English](docs/DSL.en.md) | [Русский](docs/DSL.ru.md)
-- **API** — [English](docs/API.en.md) | [Русский](docs/API.ru.md)
-- **Releases** — [English](docs/RELEASES.en.md) | [Русский](docs/RELEASES.ru.md)
+- **DSL** — [English](https://github.com/jsondeck/core/blob/main/docs/DSL.en.md) | [Русский](https://github.com/jsondeck/core/blob/main/docs/DSL.ru.md)
+- **API** — [English](https://github.com/jsondeck/core/blob/main/docs/API.en.md) | [Русский](https://github.com/jsondeck/core/blob/main/docs/API.ru.md)
+- **Releases** — [English](https://github.com/jsondeck/core/blob/main/docs/RELEASES.en.md) | [Русский](https://github.com/jsondeck/core/blob/main/docs/RELEASES.ru.md)
 
 ## Example Games
 
-See [examples/](examples/) for sample game definitions:
+See [examples/](https://github.com/jsondeck/core/tree/main/examples) for sample game definitions
+(also shipped inside the package under `node_modules/@jsondeck/core/examples`):
 
-- [generic-card-interaction.json](examples/generic-card-interaction.json) — Basic card interaction demo
+- [generic-card-interaction.json](https://github.com/jsondeck/core/blob/main/examples/generic-card-interaction.json) — Basic card interaction demo
 
 ## API Overview
 
@@ -187,13 +188,23 @@ whose `message` summarizes the first failure for logs and stack traces.
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on submitting PRs and working with the codebase.
+Please see [CONTRIBUTING.md](https://github.com/jsondeck/core/blob/main/docs/CONTRIBUTING.md) for guidelines on submitting PRs and working with the codebase.
 
 ## Status
 
-Current version: **0.1.0** (Beta)
+Current version: **0.1.0 — Beta.** Suitable for controlled production
+integrations and early adopters, not yet a stabilized GA SDK. The DSL v0.1 and
+the runtime API may receive backward-incompatible refinements before `1.0.0`.
 
-This is the initial release implementing DSL v0.1 and core runtime features. See [CHANGELOG.md](CHANGELOG.md) for release history.
+Recommendations for adopters:
+
+- **Pin an exact version** (`"@jsondeck/core": "0.1.0"`) and upgrade
+  deliberately; review the [CHANGELOG](https://github.com/jsondeck/core/blob/main/CHANGELOG.md)
+  and [release criteria](https://github.com/jsondeck/core/blob/main/docs/RELEASES.en.md#release-criteria).
+- Treat the `GameState` returned by `getState()` / `dispatch()` / `tick()` as an
+  owned snapshot; mutate state only through `dispatch` / `tick` / `reset`.
+
+See [CHANGELOG.md](https://github.com/jsondeck/core/blob/main/CHANGELOG.md) for release history.
 
 ## License
 

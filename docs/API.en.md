@@ -55,11 +55,18 @@ const result = dispatchEvent(game, state, {
 });
 
 console.log(result.state); // Updated state
-console.log(result.accepted); // true if any rule matched
-console.log(result.executedRules); // ['rule_id', ...]
+console.log(result.accepted); // true if >= 1 rule executed successfully (incl. follow-ups)
+console.log(result.matchedRules); // rules whose `on` matched the event type
+console.log(result.executedRules); // rules that committed (condition passed + all commands ok)
 console.log(result.errors); // Any errors
 console.log(result.warnings); // Any warnings
 ```
+
+> `matchedRules` lists every rule whose `on` matches the event type;
+> `executedRules` lists only those that actually committed. `accepted` is
+> `true` when at least one rule (including any `emit_event` follow-up) executed
+> successfully — a rule that matches but whose `if` condition is false, or whose
+> commands error and roll back, does **not** make `accepted` true.
 
 ### `tick(game: CompiledGame, state: GameState, deltaMs: number): TickResult`
 

@@ -16,6 +16,33 @@ MAJOR.MINOR.PATCH
 
 Current version: **0.1.0** (beta)
 
+## Release Criteria
+
+A version is only cut when **all** of the following hold on `main`:
+
+1. `npm run check` is green: `format:check`, `lint` (0 errors), `typecheck`
+   (covers `src` **and** `test`), the full test suite, and `build`.
+2. The external fixture suite passes (`test/externalRuntimeFixtures.test.ts`,
+   currently 19/19).
+3. `npm pack --dry-run` produces a clean tarball (no source maps; only
+   `dist`, `examples`, README, LICENSE, CHANGELOG).
+4. The browser bundle smoke step passes (the package bundles for `platform=browser`
+   with no Node-only APIs).
+5. `npm audit --omit=dev` reports 0 vulnerabilities in runtime dependencies.
+6. A Changeset describes every user-facing change, and the CHANGELOG is updated.
+
+### `0.x` stability contract
+
+While on `0.x`:
+
+- The DSL v0.1 grammar and the public runtime API may change between **minor**
+  versions; breaking changes are called out in the CHANGELOG and the Changeset.
+- Patch releases never change the DSL or the public API shape.
+- Adopters should **pin an exact version** and upgrade deliberately.
+
+`1.0.0` will freeze the DSL v0.1 grammar and the public API: after it, any
+breaking change requires a **major** bump.
+
 ## Release Process
 
 Releases use [Changesets](https://github.com/changesets/changesets) for automation.

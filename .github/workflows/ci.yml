@@ -38,5 +38,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Browser bundle smoke (ESM, no Node-only APIs)
+        run: npx --yes esbuild@0.23.0 dist/index.js --bundle --format=esm --platform=browser --outfile=/dev/null
+
       - name: Dry run pack
         run: npm pack --dry-run
