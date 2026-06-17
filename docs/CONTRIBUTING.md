@@ -139,34 +139,33 @@ npm run test:watch       # Watch mode
 2. Implement logic
 3. Add comprehensive tests
 4. Update documentation
-5. Create a changeset (see below)
+5. For user-facing changes, update version metadata and CHANGELOG in the release PR
 
 ## Release Process
 
-### Changesets
+### Version Metadata
 
-We use [Changesets](https://github.com/changesets/changesets) for versioning and release notes.
+For any user-facing release, the release PR must update:
 
-**For any user-facing change**, add a changeset:
+- `package.json`
+- `package-lock.json`
+- `CHANGELOG.md`
+- docs/examples that mention the current version
 
-```bash
-npx changeset add
-```
-
-This creates a file in `.changeset/` describing your change. Include:
+Use SemVer:
 
 - `patch` for bug fixes
 - `minor` for new features
 - `major` for breaking changes
 
-Examples of changes requiring changesets:
+Examples of changes requiring a version bump:
 
 - New public API exports
 - Changes to DSL syntax
 - Bug fixes affecting behavior
 - Dependency updates
 
-**No changeset needed for:**
+**No version bump needed for:**
 
 - Internal refactoring
 - Test additions
@@ -175,11 +174,12 @@ Examples of changes requiring changesets:
 
 ### Automated Release
 
-When a changeset is committed to `main`:
+When a release commit is merged to `main`:
 
-1. GitHub Actions detects it
-2. Creates a Release PR updating version + CHANGELOG
-3. On merge, automatically publishes to npm
+1. GitHub Actions runs the release gates
+2. If the committed package version is not already on npm, it publishes via npm
+   Trusted Publishing
+3. Maintainer creates the matching GitHub Release
 
 For manual release (if needed):
 
@@ -210,11 +210,12 @@ All checks must pass before merging.
 
 ### Release Workflow
 
-Releases are automatic via Changesets and npm Trusted Publishing. The workflow:
+Releases publish through npm Trusted Publishing. The workflow:
 
-1. Detects changesets on `main`
-2. Creates version bump PR
-3. On merge, publishes to npm with OIDC/provenance
+1. Runs on push to `main`
+2. Runs the full release gates
+3. Publishes the committed package version to npm with OIDC/provenance if it is
+   not already published
 
 **Required npm setup** (ask repository owner):
 
