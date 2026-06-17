@@ -7,8 +7,9 @@ import { executeCommand } from '../commands/executeCommand.js';
 import { createEventContext } from '../events/createEventContext.js';
 import { validateEvent } from './validateEvent.js';
 import { deepCloneState } from './deepClone.js';
+import { RUNTIME_LIMITS } from '../limits.js';
 
-const MAX_EVENT_DEPTH = 32;
+const MAX_EVENT_DEPTH = RUNTIME_LIMITS.maxEventDepth;
 
 /**
  * Public, pure entry point. Clones the incoming state once and never mutates

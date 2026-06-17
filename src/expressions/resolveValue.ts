@@ -1,4 +1,5 @@
 import { JsonDeckWarning } from '../errors/types.js';
+import { RUNTIME_LIMITS } from '../limits.js';
 
 export interface ResolveContext {
   source?: string;
@@ -102,8 +103,21 @@ export function resolveValue(input: unknown, context: ResolveContext): ResolveRe
  */
 export function deepResolve(input: unknown, context: ResolveContext): [unknown, JsonDeckWarning[]] {
   const warnings: JsonDeckWarning[] = [];
+  let depthExceeded = false;
 
-  const visit = (value: unknown): unknown => {
+  const visit = (value: unknown, depth: number): unknown => {
+    // Guard against adversarially deep payload/bind structures overflowing the
+    // stack: beyond the limit, stop descending and keep the subtree verbatim.
+    if (depth > RUNTIME_LIMITS.maxExpressionDepth) {
+      if (!depthExceeded) {
+        depthExceeded = true;
+        warnings.push({
+          code: 'EXPRESSION_RESOLUTION_ERROR',
+          message: `Expression nesting exceeded maxExpressionDepth (${RUNTIME_LIMITS.maxExpressionDepth}); deeper values left unresolved`,
+        });
+      }
+      return value;
+    }
     if (typeof value === 'string') {
       if (value.startsWith('$')) {
         const resolved = resolveValue(value, context);
@@ -113,19 +127,19 @@ export function deepResolve(input: unknown, context: ResolveContext): [unknown, 
       return value;
     }
     if (Array.isArray(value)) {
-      return value.map(visit);
+      return value.map((v) => visit(v, depth + 1));
     }
     if (value !== null && typeof value === 'object') {
       const out: Record<string, unknown> = {};
       for (const [key, val] of Object.entries(value)) {
-        out[key] = visit(val);
+        out[key] = visit(val, depth + 1);
       }
       return out;
     }
     return value;
   };
 
-  return [visit(input), warnings];
+  return [visit(input, 0), warnings];
 }
 
 export function deepResolveRecord(

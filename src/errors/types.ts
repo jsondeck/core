@@ -20,6 +20,7 @@ export const JsonDeckErrorCodes = {
   INVALID_EVENT: 'INVALID_EVENT',
   INVALID_TICK_DELTA: 'INVALID_TICK_DELTA',
   MAX_EVENT_DEPTH_EXCEEDED: 'MAX_EVENT_DEPTH_EXCEEDED',
+  INVALID_STATE: 'INVALID_STATE',
 } as const;
 
 /** Union of all known error/warning codes. */

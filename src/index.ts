@@ -25,8 +25,13 @@ export type {
 export { createInitialState } from './runtime/createInitialState.js';
 export { dispatchEvent } from './rules/dispatchEvent.js';
 export { tick } from './runtime/tick.js';
-export { buildViewModel } from './view/buildViewModel.js';
+export { buildViewModel, safeBuildViewModel } from './view/buildViewModel.js';
+export type { SafeBuildViewModelResult } from './view/buildViewModel.js';
 export { createRuntime } from './runtime/createRuntime.js';
+export { validateState } from './runtime/validateState.js';
+export type { StateValidationResult } from './runtime/validateState.js';
+export { RUNTIME_LIMITS } from './limits.js';
+export type { RuntimeLimits } from './limits.js';
 
 // Types
 export type { GameState, CardInstance, ZoneState, TimerInstance, GameMeta } from './model/types.js';

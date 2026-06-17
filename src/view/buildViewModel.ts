@@ -2,9 +2,29 @@ import { CompiledGame } from '../dsl/types.js';
 import { GameState } from '../model/types.js';
 import { GameViewModel, ZoneViewModel, CardViewModel } from './types.js';
 import { resolveValue, ResolveContext } from '../expressions/resolveValue.js';
+import { JsonDeckError } from '../errors/types.js';
+import { validateState } from '../runtime/validateState.js';
 
 const DEFAULT_CARD_WIDTH = 120;
 const DEFAULT_CARD_HEIGHT = 170;
+
+export type SafeBuildViewModelResult =
+  | { ok: true; viewModel: GameViewModel }
+  | { ok: false; errors: JsonDeckError[] };
+
+/**
+ * Validates the state against the game first; on success returns the view model,
+ * otherwise returns structured errors instead of building from inconsistent
+ * state. Prefer this over `buildViewModel` when the state may have come from
+ * persistence, migration, or untrusted code.
+ */
+export function safeBuildViewModel(game: CompiledGame, state: GameState): SafeBuildViewModelResult {
+  const validation = validateState(game, state);
+  if (!validation.ok) {
+    return { ok: false, errors: validation.errors };
+  }
+  return { ok: true, viewModel: buildViewModel(game, state) };
+}
 
 export function buildViewModel(game: CompiledGame, state: GameState): GameViewModel {
   const cardTheme = game.theme?.card || {};

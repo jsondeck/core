@@ -123,6 +123,13 @@ export function executeCommand(
         `set_var "${sv.name}" expects ${declared.type}, got ${typeof value}`,
       );
     }
+    // Reject NaN/Infinity for number variables to keep state serializable.
+    if (declared.type === 'number' && !Number.isFinite(value)) {
+      return err(
+        'INVALID_VARIABLE_TYPE',
+        `set_var "${sv.name}" must be a finite number, got ${value}`,
+      );
+    }
 
     state.vars[sv.name] = value as string | number | boolean;
     return ok();
@@ -150,14 +157,21 @@ export function executeCommand(
     warnings.push(...addRes.warnings);
     const addValue = addRes.value;
 
-    if (typeof addValue !== 'number') {
+    if (typeof addValue !== 'number' || !Number.isFinite(addValue)) {
       return err(
         'INVALID_VARIABLE_TYPE',
-        `modify_var "${mv.name}" add value must resolve to a number, got ${typeof addValue}`,
+        `modify_var "${mv.name}" add value must resolve to a finite number, got ${
+          typeof addValue === 'number' ? addValue : typeof addValue
+        }`,
       );
     }
 
-    state.vars[mv.name] = current + addValue;
+    const next = current + addValue;
+    if (!Number.isFinite(next)) {
+      return err('INVALID_VARIABLE_TYPE', `modify_var "${mv.name}" overflowed to ${next}`);
+    }
+
+    state.vars[mv.name] = next;
     return ok();
   }
 
