@@ -112,6 +112,7 @@ export function validateEvent(raw: unknown): JsonDeckError | null {
         !isNonEmptyString(timer.runtimeId) ||
         !isNonEmptyString(timer.id) ||
         typeof timer.durationMs !== 'number' ||
+        !Number.isFinite(timer.durationMs) ||
         !isRecord(timer.bind)
       ) {
         return invalid(

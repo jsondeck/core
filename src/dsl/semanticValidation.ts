@@ -263,10 +263,10 @@ function validateCommand(cmd: Command, game: GameDefinition): JsonDeckError | nu
     if (isExpression(st.duration_ms)) {
       // ok — resolved at runtime
     } else if (typeof st.duration_ms === 'number') {
-      if (st.duration_ms <= 0) {
+      if (!Number.isFinite(st.duration_ms) || st.duration_ms <= 0) {
         return {
           code: 'SEMANTIC_VALIDATION_ERROR',
-          message: `start_timer.duration_ms must be positive, got: ${st.duration_ms}`,
+          message: `start_timer.duration_ms must be a finite positive number, got: ${st.duration_ms}`,
         };
       }
     } else {

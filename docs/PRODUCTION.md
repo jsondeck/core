@@ -34,12 +34,12 @@ the ViewModel and `GameState`.
 The runtime is pure and bounded in some dimensions but not all. Built-in
 guards (exported as `RUNTIME_LIMITS`):
 
-| Limit                | Value       | Guard                                                                                                            |
-| -------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| `maxEventDepth`      | 32          | `emit_event` follow-up chains stop with `MAX_EVENT_DEPTH_EXCEEDED`.                                              |
-| `maxExpressionDepth` | 64          | Deeply nested `payload`/`bind` stop resolving with an `EXPRESSION_RESOLUTION_ERROR` warning (no stack overflow). |
-| numeric variables    | finite      | `set_var`/`modify_var` reject `NaN`/`Infinity`/overflow.                                                         |
-| `tick(deltaMs)`      | finite, ≥ 0 | Invalid deltas return `INVALID_TICK_DELTA`, state unchanged.                                                     |
+| Limit                | Value       | Guard                                                                                                                                                                                                                                                               |
+| -------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxEventDepth`      | 32          | `emit_event` follow-up chains stop with `MAX_EVENT_DEPTH_EXCEEDED`.                                                                                                                                                                                                 |
+| `maxExpressionDepth` | 64          | Deeply nested `payload`/`bind` stop resolving with an `EXPRESSION_RESOLUTION_ERROR` warning (no stack overflow).                                                                                                                                                    |
+| all numeric values   | finite      | DSL numbers (variable initials, coordinates, table/rect, `count`, `duration_ms`) are rejected at compile if non-finite; `set_var`/`modify_var`/`move_card`/`start_timer` reject `NaN`/`Infinity`/overflow at runtime, so `GameState` stays finite and serializable. |
+| `tick(deltaMs)`      | finite, ≥ 0 | Invalid deltas return `INVALID_TICK_DELTA`, state unchanged.                                                                                                                                                                                                        |
 
 **Not yet bounded by the engine (enforce on your side for untrusted DSL):**
 

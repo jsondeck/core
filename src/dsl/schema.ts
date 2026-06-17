@@ -1,17 +1,21 @@
 import { z } from 'zod';
 
-const gameValueSchema = z.union([z.string(), z.number(), z.boolean()]);
+// Reject NaN/Infinity for every numeric value that ends up in GameState, so the
+// state stays finite and serializable.
+const finiteNumber = z.number().finite();
+
+const gameValueSchema = z.union([z.string(), finiteNumber, z.boolean()]);
 
 const tableDefinitionSchema = z.object({
-  width: z.number().positive(),
-  height: z.number().positive(),
+  width: finiteNumber.positive(),
+  height: finiteNumber.positive(),
   background: z.string().optional(),
   camera: z.object({ mode: z.literal('fixed') }),
 });
 
 const variableDefinitionSchema = z.object({
   type: z.enum(['number', 'string', 'boolean']),
-  initial: z.union([z.string(), z.number(), z.boolean()]),
+  initial: z.union([z.string(), finiteNumber, z.boolean()]),
 });
 
 const cardTypeDefinitionSchema = z.object({
@@ -26,16 +30,16 @@ const zoneDefinitionSchema = z.object({
   title: z.string().optional(),
   type: z.enum(['free_space', 'deck', 'hand', 'discard', 'table', 'slot']),
   layout: z.enum(['free', 'pile', 'row', 'grid']),
-  rect: z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() }).optional(),
+  rect: z.object({ x: finiteNumber, y: finiteNumber, w: finiteNumber, h: finiteNumber }).optional(),
 });
 
 const initialCardSchema = z.object({
   id: z.string(),
   type: z.string(),
   zone: z.string(),
-  x: z.number().optional(),
-  y: z.number().optional(),
-  z: z.number().optional(),
+  x: finiteNumber.optional(),
+  y: finiteNumber.optional(),
+  z: finiteNumber.optional(),
   face: z.enum(['up', 'down']).optional().default('up'),
 });
 
@@ -98,7 +102,7 @@ export const conditionSchema: z.ZodTypeAny = z.lazy(() =>
 // object with more than one key and report it as a SEMANTIC_VALIDATION_ERROR
 // (spec §8.2 classifies "exactly one key" as a semantic rule). A bogus wrapper
 // with no known command key still fails the union (DSL_VALIDATION_ERROR).
-const expressionOrNumber = z.union([z.number(), z.string()]);
+const expressionOrNumber = z.union([finiteNumber, z.string()]);
 
 export const commandSchema: z.ZodType<unknown> = z.union([
   z

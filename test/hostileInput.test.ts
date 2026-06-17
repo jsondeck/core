@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
   compileGame,
+  safeCompileGame,
   createInitialState,
   dispatchEvent,
   tick,
   buildViewModel,
   safeBuildViewModel,
   validateState,
+  createRuntime,
   RUNTIME_LIMITS,
 } from '../src/index.js';
 import { deepCloneState } from '../src/rules/deepClone.js';
@@ -150,5 +152,109 @@ describe('safeBuildViewModel', () => {
     }
     // The unsafe variant must still not throw.
     expect(() => buildViewModel(g, s)).not.toThrow();
+  });
+});
+
+describe('Runtime — nested timer bind is deeply isolated', () => {
+  it('mutating a nested bind in a snapshot does not leak into internal state', () => {
+    const rt = createRuntime({
+      jsondeck: '0.1',
+      id: 'bind',
+      title: 'Bind',
+      table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+      zones: { z: { type: 'free_space', layout: 'free' } },
+      cardTypes: { u: { title: 'U', tags: ['actor'] } },
+      initialState: { cards: [{ id: 'c1', type: 'u', zone: 'z' }] },
+      rules: [
+        {
+          id: 'r',
+          on: 'card.clicked',
+          then: [
+            {
+              start_timer: {
+                id: 't',
+                duration_ms: 1000,
+                bind: { nested: { value: 1 }, arr: [1, 2] },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    rt.dispatch({ type: 'card.clicked', source: 'c1' });
+    const snap = rt.getState();
+    const tid = Object.keys(snap.timers)[0];
+    (snap.timers[tid].bind.nested as { value: number }).value = 999;
+    (snap.timers[tid].bind.arr as number[]).push(3);
+
+    const after = rt.getState();
+    expect((after.timers[tid].bind.nested as { value: number }).value).toBe(1);
+    expect((after.timers[tid].bind.arr as number[]).length).toBe(2);
+  });
+});
+
+describe('non-finite numbers are rejected everywhere', () => {
+  const withVarInitial = (initial: unknown) => ({
+    jsondeck: '0.1',
+    id: 'fin',
+    title: 'Fin',
+    variables: { d: { type: 'number', initial } },
+    table: { width: 800, height: 600, camera: { mode: 'fixed' } },
+    zones: { z: { type: 'free_space', layout: 'free' } },
+    cardTypes: { u: { title: 'U' } },
+    initialState: { cards: [] },
+    rules: [],
+  });
+
+  it('rejects Infinity / NaN variable initials at compile', () => {
+    expect(safeCompileGame(withVarInitial(Infinity)).ok).toBe(false);
+    expect(safeCompileGame(withVarInitial(-Infinity)).ok).toBe(false);
+    expect(safeCompileGame(withVarInitial(NaN)).ok).toBe(false);
+    expect(safeCompileGame(withVarInitial(0)).ok).toBe(true);
+  });
+
+  it('rejects a non-finite literal start_timer.duration_ms at compile', () => {
+    const r = safeCompileGame({
+      ...withVarInitial(0),
+      rules: [
+        {
+          id: 'r',
+          on: 'game.started',
+          then: [{ start_timer: { id: 't', duration_ms: Infinity } }],
+        },
+      ],
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it('rejects a non-finite duration resolved from an event payload at runtime', () => {
+    const g = compileGame({
+      ...withVarInitial(0),
+      cardTypes: { u: { title: 'U' } },
+      initialState: { cards: [] },
+      rules: [
+        {
+          id: 'r',
+          on: 'custom.go',
+          then: [{ start_timer: { id: 't', duration_ms: '$event.payload.dur' } }],
+        },
+      ],
+    });
+    const r = dispatchEvent(g, createInitialState(g), {
+      type: 'custom.go',
+      payload: { dur: Infinity },
+    });
+    expect(r.accepted).toBe(false);
+    expect(r.errors.some((e) => e.code === 'COMMAND_EXECUTION_ERROR')).toBe(true);
+    expect(Object.keys(r.state.timers).length).toBe(0);
+  });
+
+  it('validateState flags a non-finite number variable', () => {
+    const g = compileGame(withVarInitial(0));
+    const s = deepCloneState(createInitialState(g));
+    (s.vars as Record<string, unknown>)['d'] = Infinity;
+    const v = validateState(g, s);
+    expect(v.ok).toBe(false);
+    expect(v.errors.some((e) => e.path === 'vars.d')).toBe(true);
   });
 });

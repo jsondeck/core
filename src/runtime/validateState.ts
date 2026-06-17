@@ -35,7 +35,7 @@ export function validateState(game: CompiledGame, state: GameState): StateValida
     add('state.zones must be an object', 'zones');
   if (errors.length > 0) return { ok: false, errors };
 
-  // Variables: present + correct declared type.
+  // Variables: present + correct declared type (and finite for numbers).
   for (const [name, def] of Object.entries(game.variables)) {
     if (!(name in state.vars)) {
       add(`missing variable "${name}"`, `vars.${name}`);
@@ -44,6 +44,8 @@ export function validateState(game: CompiledGame, state: GameState): StateValida
         `variable "${name}" should be ${def.type}, got ${typeof state.vars[name]}`,
         `vars.${name}`,
       );
+    } else if (def.type === 'number' && !Number.isFinite(state.vars[name])) {
+      add(`variable "${name}" must be a finite number, got ${state.vars[name]}`, `vars.${name}`);
     }
   }
 

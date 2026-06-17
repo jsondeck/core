@@ -196,10 +196,10 @@ export function executeCommand(
     warnings.push(...durationRes.warnings);
 
     const duration = durationRes.value;
-    if (typeof duration !== 'number' || duration <= 0) {
+    if (typeof duration !== 'number' || !Number.isFinite(duration) || duration <= 0) {
       return err(
         'COMMAND_EXECUTION_ERROR',
-        `start_timer.duration_ms must resolve to a positive number, got: ${JSON.stringify(duration)}`,
+        `start_timer.duration_ms must resolve to a finite positive number, got: ${JSON.stringify(duration)}`,
       );
     }
 
