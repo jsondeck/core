@@ -21,7 +21,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
-          registry-url: 'https://registry.npmjs.org'
+          # Intentionally omit registry-url for npm Trusted Publishing.
+          # setup-node writes token-based auth config when registry-url is set,
+          # which can make npm publish fall back to NODE_AUTH_TOKEN instead of OIDC.
 
       - name: Install npm 11 for trusted publishing
         run: npm install -g npm@11
