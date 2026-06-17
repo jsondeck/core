@@ -45,54 +45,30 @@ breaking change requires a **major** bump.
 
 ## Release Process
 
-Releases use [Changesets](https://github.com/changesets/changesets) for automation.
+Releases publish the version already committed on `main` through GitHub Actions
+and npm Trusted Publishing.
 
 ### Workflow
 
-1. **Create changeset** on feature branch:
+1. **Prepare release PR** on a feature branch:
+   - bump `package.json` and `package-lock.json`
+   - update `CHANGELOG.md`
+   - keep docs/examples aligned with the new version
+2. **Merge to main** after CI is green.
+3. **GitHub Actions** runs release gates and publishes the package if the
+   committed version is not already on npm.
+4. **Create GitHub Release** for the published tag/version.
 
-   ```bash
-   npx changeset add
-   ```
+### What Needs a Version Bump?
 
-2. **Merge to main** — Changeset file committed
-
-3. **GitHub Actions** detects changeset:
-   - Creates Release PR with version bump + CHANGELOG
-   - Lists all changes to review
-
-4. **Merge Release PR** — Triggers publish:
-   - npm publish automatic
-   - GitHub Release created
-   - CHANGELOG updated
-
-### Changeset Format
-
-When you run `npx changeset add`, answer:
-
-1. Which packages changed? (select: @jsondeck/core)
-2. What type? (select: patch, minor, major)
-3. Describe the change (will be in CHANGELOG)
-
-Example description:
-
-```
-Fix timer remainingMs calculation in tick()
-
-- Timers now correctly decrease remainingMs even if not processed
-- New timers created during tick still start fresh next tick
-```
-
-### What Needs a Changeset?
-
-**YES, add changeset for:**
+**YES, bump package version for:**
 
 - New public API exports
 - Changes to DSL syntax
 - Bug fixes affecting behavior
 - Major version updates
 
-**NO changeset needed for:**
+**NO version bump needed for:**
 
 - Internal refactoring
 - Test additions

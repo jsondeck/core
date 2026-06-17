@@ -36,34 +36,19 @@ MAJOR.MINOR.PATCH
 
 ## Процесс релиза
 
-Автоматизирован через [Changesets](https://github.com/changesets/changesets).
+Release workflow публикует версию, уже закоммиченную в `main`, через GitHub
+Actions и npm Trusted Publishing.
 
 ### Шаги
 
-1. **Создать changeset** на ветке фичи:
-
-   ```bash
-   npx changeset add
-   ```
-
-2. **Мержить в main** — Файл changeset коммитится
-
-3. **GitHub Actions** обнаруживает changeset:
-   - Создаёт Release PR с версией + CHANGELOG
-   - Выводит все изменения на review
-
-4. **Мержить Release PR** → Автоматический publish:
-   - npm publish
-   - GitHub Release
-   - CHANGELOG обновляется
-
-### Формат Changeset
-
-При `npx changeset add` ответьте на вопросы:
-
-1. Какие пакеты изменились? (выберите: @jsondeck/core)
-2. Тип? (patch, minor, major)
-3. Описание (будет в CHANGELOG)
+1. **Подготовить release PR** на отдельной ветке:
+   - поднять `package.json` и `package-lock.json`
+   - обновить `CHANGELOG.md`
+   - синхронизировать docs/examples с новой версией
+2. **Мержить в main** после зелёного CI.
+3. **GitHub Actions** прогоняет release-гейты и публикует пакет, если
+   закоммиченная версия ещё не опубликована в npm.
+4. **Создать GitHub Release** для опубликованной версии/тега.
 
 ## Данные для публикации
 
