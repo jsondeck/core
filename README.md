@@ -107,6 +107,14 @@ console.log(viewModel);
 - **API** — [English](https://github.com/jsondeck/core/blob/main/docs/API.en.md) | [Русский](https://github.com/jsondeck/core/blob/main/docs/API.ru.md)
 - **Releases** — [English](https://github.com/jsondeck/core/blob/main/docs/RELEASES.en.md) | [Русский](https://github.com/jsondeck/core/blob/main/docs/RELEASES.ru.md)
 
+### For integrators
+
+- **[Error & warning catalog](https://github.com/jsondeck/core/blob/main/docs/ERRORS.md)** — every `code`, where it appears, how errors surface
+- **[Production checklist & limits](https://github.com/jsondeck/core/blob/main/docs/PRODUCTION.md)** — untrusted input, resource limits, "what core does not do"
+- **[Compatibility policy](https://github.com/jsondeck/core/blob/main/docs/COMPATIBILITY.md)** — SemVer contract, DSL versioning, `GameState` guarantees
+- **[Roadmap to 1.0.0](https://github.com/jsondeck/core/blob/main/docs/ROADMAP.md)** — what remains before a GA SDK label
+- **[Security policy](https://github.com/jsondeck/core/blob/main/SECURITY.md)**
+
 ## Example Games
 
 See [examples/](https://github.com/jsondeck/core/tree/main/examples) for sample game definitions
